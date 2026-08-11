@@ -70,12 +70,14 @@ export class TypingEngine {
     acceptedAnswers,
     allowTab = true,
     tabSize = 4,
+    autoComplete = true,
   } = {}) {
     const normalized = normalizeAnswers(answer, acceptedAnswers);
     this.answer = normalized.primary;
     this.acceptedAnswers = Object.freeze(normalized.answers);
     this.allowTab = Boolean(allowTab);
     this.tabSize = Math.max(1, Math.trunc(Number(tabSize) || 4));
+    this.autoComplete = Boolean(autoComplete);
 
     this.input = "";
     this.correctKeystrokes = 0;
@@ -221,7 +223,7 @@ export class TypingEngine {
       }
       comparisons.push(Object.freeze({ position, expected, actual: character, correct }));
 
-      if (this.acceptedAnswers.includes(this.input)) {
+      if (this.autoComplete && this.acceptedAnswers.includes(this.input)) {
         this.completed = true;
         this.completedAt = now;
         this.lockedAt = now;
@@ -277,6 +279,16 @@ export class TypingEngine {
   lock(timestamp) {
     if (this.locked) return false;
     const now = timestampOf(timestamp);
+    this.lockedAt = now;
+    this.locked = true;
+    return true;
+  }
+
+  complete(timestamp) {
+    if (this.locked || !this.acceptedAnswers.includes(this.input)) return false;
+    const now = timestampOf(timestamp);
+    this.completed = true;
+    this.completedAt = now;
     this.lockedAt = now;
     this.locked = true;
     return true;
@@ -346,6 +358,7 @@ export function createTypingEngine(question, options = {}) {
   return new TypingEngine(question.answer, {
     acceptedAnswers: question.acceptedAnswers,
     allowTab: question.level === 1,
+    autoComplete: question.level !== 2,
     ...options,
   });
 }

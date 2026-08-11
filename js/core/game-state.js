@@ -410,6 +410,45 @@ export class GameState {
     return this._recordFailedProblem(now, { submittedIncorrect: true });
   }
 
+  submitLevel2Answer(timestamp, problemToken) {
+    const now = this._time(timestamp);
+    this.tick(now);
+    if (
+      this.phase !== "playing"
+      || this.currentQuestion?.level !== 2
+      || !this.typingEngine
+      || this.typingEngine.input.length === 0
+    ) {
+      return false;
+    }
+    if (problemToken !== undefined && problemToken !== this.problemToken) return false;
+
+    if (!this.typingEngine.complete(now)) {
+      const problemResult = this._recordFailedProblem(now, { submittedIncorrect: true });
+      return Object.freeze({
+        completed: false,
+        submittedLevel2Answer: true,
+        problemResult,
+        ended: this.phase === "ended",
+        endReason: this.endReason,
+      });
+    }
+    let timeAdjustmentMs = 0;
+    if (this.config.durationMs !== null) {
+      this.level2TimeAdjustmentMs += LEVEL_2_TIME_RULES.bonusMs;
+      timeAdjustmentMs = LEVEL_2_TIME_RULES.bonusMs;
+    }
+    const problemResult = this._completeProblem(now);
+    return Object.freeze({
+      completed: true,
+      submittedLevel2Answer: true,
+      timeAdjustmentMs,
+      problemResult,
+      ended: this.phase === "ended",
+      endReason: this.endReason,
+    });
+  }
+
   skipCurrentProblem(timestamp) {
     const now = this._time(timestamp);
     this.tick(now);

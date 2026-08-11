@@ -302,6 +302,7 @@ class PythonTypingSurvivalApp {
     for (const eventName of ["paste", "drop", "cut"]) {
       input.addEventListener(eventName, (event) => this.blockInjectedInput(event));
     }
+    document.addEventListener("keydown", (event) => this.handleLevel2FeedbackKey(event));
 
     document.addEventListener("visibilitychange", () => this.handleVisibilityChange());
     window.addEventListener("offline", () => this.updateNetworkStatus("offline"));
@@ -505,6 +506,7 @@ class PythonTypingSurvivalApp {
       expected: "",
       problemToken: 0,
       pendingNextAt: null,
+      awaitingLevel2Advance: false,
       finishHandled: false,
       rivals: { kind: "loading", entries: [] },
       lastRivalScore: null,
@@ -563,7 +565,9 @@ class PythonTypingSurvivalApp {
       } else if (snapshot.phase === "playing") {
         $("#ready-overlay").hidden = true;
         if ($("#pause-dialog").open && snapshot.pauseReasons.length === 0) $("#pause-dialog").close();
-        if (!snapshot.currentQuestion && session.pendingNextAt === null) {
+        if (session.awaitingLevel2Advance) {
+          // Level 2 answer feedback stays visible until the player acknowledges it.
+        } else if (!snapshot.currentQuestion && session.pendingNextAt === null) {
           this.startNextQuestion(now);
         } else if (!snapshot.currentQuestion && now >= session.pendingNextAt) {
           session.pendingNextAt = null;
@@ -573,6 +577,12 @@ class PythonTypingSurvivalApp {
         $("#typing-input").disabled = true;
         this.updatePauseDialog(snapshot);
       } else if (snapshot.phase === "ended") {
+        if (session.awaitingLevel2Advance) {
+          if (this.activeSession && !this.activeSession.finishHandled) {
+            this.frameId = requestAnimationFrame((time) => this.frame(time));
+          }
+          return;
+        }
         this.finishSession();
         return;
       }
@@ -638,6 +648,7 @@ class PythonTypingSurvivalApp {
     session.isBeginnerGuide = question.tags?.includes("beginner-guide") === true;
     session.concealPending = question.level === 2 || session.isBeginnerGuide;
     session.problemToken = session.game.problemToken;
+    session.awaitingLevel2Advance = false;
     const input = $("#typing-input");
     input.value = "";
     input.disabled = false;
@@ -654,6 +665,17 @@ class PythonTypingSurvivalApp {
     if (!session || session.game.phase !== "playing" || $("#typing-input").disabled || this.isComposing) return;
     if (event.key === "Tab" && (event.shiftKey || session.game.currentQuestion?.level === 2)) return;
     if (event.key === "Enter") {
+      if (session.game.currentQuestion?.level === 2) {
+        event.preventDefault();
+        const outcome = session.game.submitLevel2Answer(performance.now(), session.problemToken);
+        if (!outcome) {
+          this.showTypingFeedback("답을 입력한 뒤 Enter로 확인하세요.", "warning");
+          return;
+        }
+        event.stopPropagation();
+        this.processTypingOutcome(outcome);
+        return;
+      }
       const problemResult = session.game.submitIncorrectProblem(
         performance.now(),
         session.problemToken,
@@ -670,6 +692,19 @@ class PythonTypingSurvivalApp {
     event.preventDefault();
     const outcome = session.game.handleKey(event, performance.now(), session.problemToken);
     this.processTypingOutcome(outcome);
+  }
+
+  handleLevel2FeedbackKey(event) {
+    const session = this.activeSession;
+    if (!session?.awaitingLevel2Advance || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (["Shift", "Control", "Alt", "Meta"].includes(event.key)) return;
+    event.preventDefault();
+    session.awaitingLevel2Advance = false;
+    if (session.game.phase === "ended") {
+      this.finishSession();
+      return;
+    }
+    this.startNextQuestion(performance.now());
   }
 
   handleBeforeInput(event) {
@@ -717,12 +752,20 @@ class PythonTypingSurvivalApp {
         : outcome.firstError ? "TYPO · COMBO RESET" : "TYPO · 지우고 고치세요");
       announce("오타. 지우고 다시 입력하세요.", { clearAfterMs: 700 });
     }
-    if (outcome?.ended) {
-      $("#typing-input").disabled = true;
-      return;
-    }
     if (outcome?.problemResult) {
       $("#typing-input").disabled = true;
+      if (outcome.problemResult.level === 2 && outcome.submittedLevel2Answer) {
+        const correct = !outcome.problemResult.submittedIncorrect;
+        this.showTypingFeedback(
+          correct
+            ? "정답입니다. 아무 키나 눌러 다음 문제로 넘어가세요."
+            : "오답입니다. 아무 키나 눌러 다음 문제로 넘어가세요.",
+          correct ? "success" : "warning",
+        );
+        announce(correct ? "정답입니다." : "오답입니다.", { clearAfterMs: 1_200 });
+        session.awaitingLevel2Advance = true;
+        return;
+      }
       if (outcome.submittedIncorrect || outcome.problemResult.submittedIncorrect) {
         this.showTypingFeedback("MISS · 오답으로 기록했습니다. 다음 문제로 이동합니다.", "warning");
         announce("오답으로 기록했습니다. 다음 문제로 이동합니다.", { clearAfterMs: 700 });
@@ -746,6 +789,9 @@ class PythonTypingSurvivalApp {
       if (session.game.phase === "playing") {
         session.pendingNextAt = performance.now() + NEXT_QUESTION_DELAY_MS;
       }
+    }
+    if (outcome?.ended) {
+      $("#typing-input").disabled = true;
     }
   }
 

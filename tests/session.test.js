@@ -117,9 +117,30 @@ test("Level 2 freezes clocks, penalizes the first typo once, and rewards a solve
   assert.equal(game.remainingMs, 13_000, "only the first Level 2 typo changes time");
   game.handleKey("Backspace");
   game.handleKey("Backspace");
-  const solved = game.handleKey("a");
+  const typed = game.handleKey("a");
+  assert.equal(typed.problemResult, undefined, "Level 2 waits for explicit submission");
+  const solved = game.submitLevel2Answer();
   assert.equal(solved.timeAdjustmentMs, LEVEL_2_TIME_RULES.bonusMs);
   assert.equal(game.remainingMs, 16_000);
+});
+
+test("Level 2 submission records either visible answer outcome without auto-advance", () => {
+  const clock = new ManualClock(0);
+  const game = new GameState(gameOptions(clock));
+  game.start();
+  game.startProblem(question({ level: 2, type: "fill", code: "____", answer: "max", acceptedAnswers: ["max"] }));
+  game.input("max");
+  const correct = game.submitLevel2Answer();
+  assert.equal(correct.submittedLevel2Answer, true);
+  assert.equal(correct.problemResult.submittedIncorrect, undefined);
+  assert.equal(correct.problemResult.cleanSolve, true);
+
+  game.startProblem(question({ level: 2, type: "fill", code: "____", answer: "min", acceptedAnswers: ["min"] }));
+  game.input("max");
+  const wrong = game.submitLevel2Answer();
+  assert.equal(wrong.submittedLevel2Answer, true);
+  assert.equal(wrong.problemResult.submittedIncorrect, true);
+  assert.equal(wrong.problemResult.problemScore, 0);
 });
 
 test("ready state becomes playing after exactly three seconds", () => {

@@ -103,8 +103,8 @@ export function renderQuestion(question, { root = document, timed = true } = {})
       ? "중간 줄 Enter는 줄바꿈입니다. 마지막 줄 Enter는 오답이어도 제출합니다. Tab은 공백 4칸입니다."
       : isFill
       ? timed
-        ? "시간 정지 · 정답 +3초 · 첫 오타 -2초 · Tab으로 입력 영역을 벗어날 수 있습니다."
-        : "시간 제한 없음 · Tab으로 입력 영역을 벗어날 수 있습니다."
+        ? "답을 입력한 뒤 Enter로 확인합니다 · 시간 정지 · 정답 +3초 · 첫 오타 -2초 · Tab으로 입력 영역을 벗어날 수 있습니다."
+        : "답을 입력한 뒤 Enter로 확인합니다 · 시간 제한 없음 · Tab으로 입력 영역을 벗어날 수 있습니다."
       : "붙여넣기는 사용할 수 없습니다. Tab은 공백 4칸, Shift+Tab은 이전 조작으로 이동합니다.",
   );
   return isFill ? question.answer : question.code;

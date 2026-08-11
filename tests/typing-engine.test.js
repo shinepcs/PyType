@@ -132,3 +132,11 @@ test("createTypingEngine enables Tab only for Level 1", () => {
   assert.equal(copy.handleKey("Tab", 0).attempts, 4);
   assert.equal(fill.handleKey("Tab", 0).ignored, true);
 });
+
+test("Level 2 keeps an exact answer editable until it is explicitly submitted", () => {
+  const fill = createTypingEngine({ level: 2, answer: "range", acceptedAnswers: ["range"] });
+  fill.insert("range", 100);
+  assert.equal(fill.snapshot(100).completed, false);
+  assert.equal(fill.complete(200), true);
+  assert.equal(fill.snapshot(200).completed, true);
+});

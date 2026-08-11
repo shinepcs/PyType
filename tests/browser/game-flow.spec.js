@@ -159,7 +159,15 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
       await page.keyboard.press("Backspace");
     }
     await enterAnswer(page, answer);
-    await expect(page.locator("#typing-input")).toBeDisabled();
+    const isLevel2 = (await page.locator("#question-level").textContent()) === "LEVEL 2";
+    if (isLevel2) {
+      await page.keyboard.press("Enter");
+      await expect(page.locator("#feedback-message")).toContainText("정답입니다");
+      await expect(page.locator("#typing-input")).toBeDisabled();
+      await page.keyboard.press("z");
+    } else {
+      await expect(page.locator("#typing-input")).toBeDisabled();
+    }
     if (solved === 0) {
       await expect(page.locator(".typing-speed small")).toHaveText("분당 타수");
       await expect.poll(async () => Number(await page.locator("#hud-cpm").textContent())).toBeGreaterThan(0);
@@ -182,7 +190,12 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
       expect(speedDisplay.fits).toBe(true);
     }
     solved += 1;
-    if (encounteredLevels.size < 2 && solved < 20) await advanceToNextQuestion(page, code);
+    if (isLevel2) {
+      await expect(page.locator("#question-code")).not.toHaveText(code);
+      await expect(page.locator("#typing-input")).toBeEnabled();
+    } else if (encounteredLevels.size < 2 && solved < 20) {
+      await advanceToNextQuestion(page, code);
+    }
   }
   expect(encounteredLevels).toEqual(new Set(["LEVEL 1", "LEVEL 2"]));
 
@@ -198,7 +211,14 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
 
   const finalAnswer = await currentAnswer(page);
   await enterAnswer(page, finalAnswer);
-  await expect(page.locator("#typing-input")).toBeDisabled();
+  if ((await page.locator("#question-level").textContent()) === "LEVEL 2") {
+    await page.keyboard.press("Enter");
+    await expect(page.locator("#feedback-message")).toContainText("정답입니다");
+    await expect(page.locator("#typing-input")).toBeDisabled();
+    await page.keyboard.press("z");
+  } else {
+    await expect(page.locator("#typing-input")).toBeDisabled();
+  }
   await page.clock.fastForward(240_000);
   await expect(page.locator("#screen-result")).toBeVisible();
   await page.clock.runFor(500);
