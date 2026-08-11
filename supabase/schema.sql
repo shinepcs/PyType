@@ -7,7 +7,7 @@ create table if not exists public.ranking_entries (
   player_name text not null,
   score integer not null,
   accuracy numeric(5, 2) not null,
-  wpm numeric(6, 2) not null,
+  cpm numeric(7, 2) not null,
   problems_solved smallint not null,
   best_combo smallint not null,
   survival_ms integer not null,
@@ -21,7 +21,7 @@ create table if not exists public.ranking_entries (
     check (player_name ~ '^[가-힣A-Za-z0-9_]{2,12}$'),
   constraint ranking_entries_score_check check (score between 0 and 10000000),
   constraint ranking_entries_accuracy_check check (accuracy between 0 and 100),
-  constraint ranking_entries_wpm_check check (wpm between 0 and 250),
+  constraint ranking_entries_cpm_check check (cpm between 0 and 1250),
   constraint ranking_entries_problems_check check (problems_solved between 1 and 40),
   constraint ranking_entries_combo_check check (best_combo between 0 and 40),
   constraint ranking_entries_survival_check check (survival_ms between 10000 and 300000),
@@ -38,6 +38,34 @@ create table if not exists public.ranking_entries (
     )
 );
 
+-- Existing deployments stored words per minute. Convert the stored values
+-- before the new 타/분 constraint is applied so ranking tie breaks remain fair.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'ranking_entries' and column_name = 'wpm'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'ranking_entries' and column_name = 'cpm'
+  ) then
+    -- The RPC return shape changes from wpm to cpm, which PostgreSQL requires
+    -- us to recreate rather than replace in place.
+    drop function if exists public.get_global_ranking(text, integer);
+    drop function if exists public.get_today_ranking(text, integer);
+    drop function if exists public.get_my_best(text);
+    drop function if exists public.get_my_rank(uuid, text);
+    drop function if exists public.get_nearby_ranking(text, integer);
+    alter table public.ranking_entries drop constraint if exists ranking_entries_wpm_check;
+    alter table public.ranking_entries rename column wpm to cpm;
+    alter table public.ranking_entries alter column cpm type numeric(7, 2);
+    update public.ranking_entries set cpm = cpm * 5;
+    alter table public.ranking_entries
+      add constraint ranking_entries_cpm_check check (cpm between 0 and 1250);
+  end if;
+end;
+$$;
+
 create index if not exists ranking_entries_global_idx
   on public.ranking_entries
   (
@@ -47,7 +75,7 @@ create index if not exists ranking_entries_global_idx
     accuracy desc,
     problems_solved desc,
     best_combo desc,
-    wpm desc,
+    cpm desc,
     created_at asc
   );
 
@@ -61,7 +89,7 @@ create index if not exists ranking_entries_user_idx
     accuracy desc,
     problems_solved desc,
     best_combo desc,
-    wpm desc,
+    cpm desc,
     created_at asc
   );
 
@@ -94,7 +122,7 @@ grant insert (
   player_name,
   score,
   accuracy,
-  wpm,
+  cpm,
   problems_solved,
   best_combo,
   survival_ms,
@@ -153,7 +181,7 @@ returns table (
   player_name text,
   score integer,
   accuracy numeric(5, 2),
-  wpm numeric(6, 2),
+  cpm numeric(7, 2),
   problems_solved smallint,
   best_combo smallint,
   survival_ms integer,
@@ -184,7 +212,7 @@ begin
           entry.accuracy desc,
           entry.problems_solved desc,
           entry.best_combo desc,
-          entry.wpm desc,
+          entry.cpm desc,
           entry.created_at asc,
           entry.id asc
       ) as user_position
@@ -200,7 +228,7 @@ begin
           candidate.accuracy desc,
           candidate.problems_solved desc,
           candidate.best_combo desc,
-          candidate.wpm desc,
+          candidate.cpm desc,
           candidate.created_at asc,
           candidate.id asc
       ) as entry_rank,
@@ -213,7 +241,7 @@ begin
     ranked.player_name,
     ranked.score,
     ranked.accuracy,
-    ranked.wpm,
+    ranked.cpm,
     ranked.problems_solved,
     ranked.best_combo,
     ranked.survival_ms,
@@ -233,7 +261,7 @@ returns table (
   player_name text,
   score integer,
   accuracy numeric(5, 2),
-  wpm numeric(6, 2),
+  cpm numeric(7, 2),
   problems_solved smallint,
   best_combo smallint,
   survival_ms integer,
@@ -266,7 +294,7 @@ begin
           entry.accuracy desc,
           entry.problems_solved desc,
           entry.best_combo desc,
-          entry.wpm desc,
+          entry.cpm desc,
           entry.created_at asc,
           entry.id asc
       ) as user_position
@@ -284,7 +312,7 @@ begin
           candidate.accuracy desc,
           candidate.problems_solved desc,
           candidate.best_combo desc,
-          candidate.wpm desc,
+          candidate.cpm desc,
           candidate.created_at asc,
           candidate.id asc
       ) as entry_rank,
@@ -297,7 +325,7 @@ begin
     ranked.player_name,
     ranked.score,
     ranked.accuracy,
-    ranked.wpm,
+    ranked.cpm,
     ranked.problems_solved,
     ranked.best_combo,
     ranked.survival_ms,
@@ -314,7 +342,7 @@ returns table (
   player_name text,
   score integer,
   accuracy numeric(5, 2),
-  wpm numeric(6, 2),
+  cpm numeric(7, 2),
   problems_solved smallint,
   best_combo smallint,
   survival_ms integer,
@@ -345,7 +373,7 @@ begin
           entry.accuracy desc,
           entry.problems_solved desc,
           entry.best_combo desc,
-          entry.wpm desc,
+          entry.cpm desc,
           entry.created_at asc,
           entry.id asc
       ) as user_position
@@ -361,7 +389,7 @@ begin
           candidate.accuracy desc,
           candidate.problems_solved desc,
           candidate.best_combo desc,
-          candidate.wpm desc,
+          candidate.cpm desc,
           candidate.created_at asc,
           candidate.id asc
       ) as entry_rank,
@@ -374,7 +402,7 @@ begin
     ranked.player_name,
     ranked.score,
     ranked.accuracy,
-    ranked.wpm,
+    ranked.cpm,
     ranked.problems_solved,
     ranked.best_combo,
     ranked.survival_ms,
@@ -393,7 +421,7 @@ returns table (
   player_name text,
   score integer,
   accuracy numeric(5, 2),
-  wpm numeric(6, 2),
+  cpm numeric(7, 2),
   problems_solved smallint,
   best_combo smallint,
   survival_ms integer,
@@ -436,7 +464,7 @@ begin
           entry.accuracy desc,
           entry.problems_solved desc,
           entry.best_combo desc,
-          entry.wpm desc,
+          entry.cpm desc,
           entry.created_at asc,
           entry.id asc
       ) as user_position
@@ -451,7 +479,7 @@ begin
       other.player_name,
       other.score,
       other.accuracy,
-      other.wpm,
+      other.cpm,
       other.problems_solved,
       other.best_combo,
       other.survival_ms,
@@ -465,7 +493,7 @@ begin
       target.player_name,
       target.score,
       target.accuracy,
-      target.wpm,
+      target.cpm,
       target.problems_solved,
       target.best_combo,
       target.survival_ms,
@@ -481,7 +509,7 @@ begin
           candidate.accuracy desc,
           candidate.problems_solved desc,
           candidate.best_combo desc,
-          candidate.wpm desc,
+          candidate.cpm desc,
           candidate.created_at asc,
           candidate.id asc
       ) as entry_rank,
@@ -493,7 +521,7 @@ begin
     ranked.player_name,
     ranked.score,
     ranked.accuracy,
-    ranked.wpm,
+    ranked.cpm,
     ranked.problems_solved,
     ranked.best_combo,
     ranked.survival_ms,
@@ -512,7 +540,7 @@ returns table (
   player_name text,
   score integer,
   accuracy numeric(5, 2),
-  wpm numeric(6, 2),
+  cpm numeric(7, 2),
   problems_solved smallint,
   best_combo smallint,
   survival_ms integer,
@@ -542,14 +570,14 @@ begin
       row_number() over (
         partition by entry.user_id
         order by entry.score desc, entry.accuracy desc, entry.problems_solved desc,
-          entry.best_combo desc, entry.wpm desc, entry.created_at asc, entry.id asc
+          entry.best_combo desc, entry.cpm desc, entry.created_at asc, entry.id asc
       ) as user_position
     from public.ranking_entries as entry
     where entry.content_version = p_content_version and entry.game_mode = 'quick'
   ), ranked as (
     select row_number() over (
         order by candidate.score desc, candidate.accuracy desc, candidate.problems_solved desc,
-          candidate.best_combo desc, candidate.wpm desc, candidate.created_at asc, candidate.id asc
+          candidate.best_combo desc, candidate.cpm desc, candidate.created_at asc, candidate.id asc
       ) as entry_rank,
       candidate.*
     from per_user as candidate
@@ -557,7 +585,7 @@ begin
   ), mine as (
     select ranked.entry_rank from ranked where ranked.user_id = auth.uid()
   )
-  select ranked.entry_rank, ranked.player_name, ranked.score, ranked.accuracy, ranked.wpm,
+  select ranked.entry_rank, ranked.player_name, ranked.score, ranked.accuracy, ranked.cpm,
     ranked.problems_solved, ranked.best_combo, ranked.survival_ms, ranked.created_at,
     ranked.user_id = auth.uid()
   from ranked cross join mine

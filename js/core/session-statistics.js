@@ -3,7 +3,7 @@ const RECENT_SESSION_LIMIT = 5;
 const METRICS = Object.freeze({
   score: Object.freeze({ tolerance: 0.5, lowerIsBetter: false }),
   accuracy: Object.freeze({ tolerance: 0.05, lowerIsBetter: false }),
-  wpm: Object.freeze({ tolerance: 0.05, lowerIsBetter: false }),
+  cpm: Object.freeze({ tolerance: 0.25, lowerIsBetter: false }),
   problemsSolved: Object.freeze({ tolerance: 0.5, lowerIsBetter: false }),
   averageProblemMs: Object.freeze({ tolerance: 50, lowerIsBetter: true }),
 });

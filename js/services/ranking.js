@@ -57,7 +57,7 @@ export function validateRankingResult(result) {
     playerName: firstDefined(result.playerName, result.nickname, result.player_name),
     score: firstDefined(result.score, result.finalScore),
     accuracy: result.accuracy,
-    wpm: result.wpm,
+    cpm: result.cpm,
     problemsSolved: firstDefined(result.problemsSolved, result.problems_solved),
     bestCombo: firstDefined(result.bestCombo, result.best_combo),
     survivalMs: firstDefined(result.survivalMs, result.survivalTimeMs, result.survival_ms),
@@ -72,7 +72,7 @@ export function validateRankingResult(result) {
   if (!NICKNAME_PATTERN.test(normalized.playerName ?? "")) errors.push("player_name_invalid");
   if (!isIntegerInRange(normalized.score, 0, 10_000_000)) errors.push("score_invalid");
   if (!isFiniteInRange(normalized.accuracy, 0, 100)) errors.push("accuracy_invalid");
-  if (!isFiniteInRange(normalized.wpm, 0, 250)) errors.push("wpm_invalid");
+  if (!isFiniteInRange(normalized.cpm, 0, 1_250)) errors.push("cpm_invalid");
   if (!isIntegerInRange(normalized.problemsSolved, 1, 40)) errors.push("problems_solved_invalid");
   if (!isIntegerInRange(normalized.bestCombo, 0, 40)) errors.push("best_combo_invalid");
   if (!isIntegerInRange(normalized.survivalMs, 10_000, 300_000)) errors.push("survival_ms_invalid");
@@ -94,7 +94,7 @@ export function validateRankingResult(result) {
       ...normalized,
       playerName: normalized.playerName,
       accuracy: roundToTwo(normalized.accuracy),
-      wpm: roundToTwo(normalized.wpm),
+      cpm: roundToTwo(normalized.cpm),
     },
   };
 }
@@ -116,7 +116,7 @@ function toDatabasePayload(result, userId) {
     player_name: result.playerName,
     score: result.score,
     accuracy: result.accuracy,
-    wpm: result.wpm,
+    cpm: result.cpm,
     problems_solved: result.problemsSolved,
     best_combo: result.bestCombo,
     survival_ms: result.survivalMs,
@@ -141,7 +141,7 @@ function normalizeRankingRow(row) {
   const rank = Number(row.rank);
   const score = Number(row.score);
   const accuracy = Number(row.accuracy);
-  const wpm = Number(row.wpm);
+  const cpm = Number(row.cpm);
   const problemsSolved = Number(row.problems_solved);
   const bestCombo = Number(row.best_combo);
   const survivalMs = Number(row.survival_ms);
@@ -151,7 +151,7 @@ function normalizeRankingRow(row) {
       || !NICKNAME_PATTERN.test(playerName ?? "")
       || !isIntegerInRange(score, 0, 10_000_000)
       || !isFiniteInRange(accuracy, 0, 100)
-      || !isFiniteInRange(wpm, 0, 250)
+      || !isFiniteInRange(cpm, 0, 1_250)
       || !isIntegerInRange(problemsSolved, 1, 40)
       || !isIntegerInRange(bestCombo, 0, 40)
       || !isIntegerInRange(survivalMs, 10_000, 300_000)
@@ -164,7 +164,7 @@ function normalizeRankingRow(row) {
     playerName,
     score,
     accuracy: roundToTwo(accuracy),
-    wpm: roundToTwo(wpm),
+    cpm: roundToTwo(cpm),
     problemsSolved,
     bestCombo,
     survivalMs,

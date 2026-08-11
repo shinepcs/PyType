@@ -59,7 +59,7 @@ test("only ranked Quick has a time limit", () => {
   assert.equal(createSessionConfig(GAME_MODES.PRACTICE, { durationMs: 1_000 }).durationMs, null);
 });
 
-test("snapshot reports live WPM from correct input and active typing time", () => {
+test("snapshot reports live 분당 타수 from correct input and active typing time", () => {
   const clock = new ManualClock(0);
   const game = new GameState(gameOptions(clock));
   game.start();
@@ -68,10 +68,10 @@ test("snapshot reports live WPM from correct input and active typing time", () =
   clock.advance(500);
   game.handleKey("b");
   clock.advance(500);
-  assert.equal(game.snapshot().wpm, 24);
+  assert.equal(game.snapshot().cpm, 120);
   game.pause("manual");
   clock.advance(2_000);
-  assert.equal(game.snapshot().wpm, 24, "pause time is excluded");
+  assert.equal(game.snapshot().cpm, 120, "pause time is excluded");
 });
 
 test("Daily seed uses local date and content version", () => {
@@ -211,7 +211,7 @@ test("first typo immediately resets combo and remains in session accuracy after 
   assert.equal(game.getResult().accuracy, 50);
 });
 
-test("problem/session time, danger and WPM stop during visibility pause", () => {
+test("problem/session time, danger and 분당 타수 stop during visibility pause", () => {
   const clock = new ManualClock(0);
   const game = new GameState(gameOptions(clock));
   game.start();

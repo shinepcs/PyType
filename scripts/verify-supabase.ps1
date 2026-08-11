@@ -103,7 +103,7 @@ function New-RankingPayload {
     [string]$PlayerName,
     [int]$Score,
     [decimal]$Accuracy,
-    [decimal]$Wpm = 60,
+    [decimal]$Cpm = 300,
     [int]$Problems = 20,
     [int]$Combo = 10,
     [int]$SurvivalMs = 240000,
@@ -115,7 +115,7 @@ function New-RankingPayload {
     player_name = $PlayerName
     score = $Score
     accuracy = $Accuracy
-    wpm = $Wpm
+    cpm = $Cpm
     problems_solved = $Problems
     best_combo = $Combo
     survival_ms = $SurvivalMs

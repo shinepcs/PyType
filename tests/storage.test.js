@@ -75,7 +75,7 @@ function session(index, mode = "quick") {
     gameMode: mode,
     score: index,
     accuracy: 95,
-    wpm: 40,
+    cpm: 200,
     problemsSolved: 20,
     bestCombo: 10,
     survivalMs: mode === "practice" ? 600_000 : 240_000,
@@ -83,9 +83,9 @@ function session(index, mode = "quick") {
   };
 }
 
-test("default storage state uses the single v1 root schema", () => {
+test("default storage state uses the versioned root schema", () => {
   const data = createDefaultStorageData(() => FIXED_NOW);
-  assert.equal(data.schemaVersion, 1);
+  assert.equal(data.schemaVersion, 2);
   assert.equal(data.profile.nickname, null);
   assert.equal(data.settings.sound, false);
   assert.equal(data.settings.practiceLayout, "vertical");
@@ -132,13 +132,27 @@ test("schema v0 data migrates explicitly and replaces the legacy key", () => {
 
   const loaded = repo.load();
 
-  assert.equal(loaded.schemaVersion, 1);
+  assert.equal(loaded.schemaVersion, 2);
   assert.equal(loaded.profile.nickname, "PyLearner");
   assert.equal(loaded.settings.sound, true);
   assert.equal(loaded.history.length, 1);
   assert.equal(storage.getItem("pythonTypingSurvival"), null);
   assert.ok(storage.getItem(STORAGE_KEY));
   assert.equal(repo.getStatus().status, "migrated");
+});
+
+test("v1 speed records migrate to equivalent 분당 타수 values", () => {
+  const legacy = createDefaultStorageData(() => FIXED_NOW);
+  legacy.schemaVersion = 1;
+  legacy.history = [{ ...session(1), wpm: 40 }];
+  delete legacy.history[0].cpm;
+  const repo = repository(new MemoryStorage([[STORAGE_KEY, JSON.stringify(legacy)]]));
+
+  const loaded = repo.load();
+
+  assert.equal(loaded.schemaVersion, 2);
+  assert.equal(loaded.history[0].cpm, 200);
+  assert.equal("wpm" in loaded.history[0], false);
 });
 
 test("corrupt JSON is backed up verbatim and recovered to defaults", () => {
@@ -152,7 +166,7 @@ test("corrupt JSON is backed up verbatim and recovered to defaults", () => {
   const backupKey = storage.keys().find((key) => key.startsWith(CORRUPT_BACKUP_PREFIX));
   assert.ok(backupKey);
   assert.equal(storage.getItem(backupKey), corrupt);
-  assert.equal(JSON.parse(storage.getItem(STORAGE_KEY)).schemaVersion, 1);
+  assert.equal(JSON.parse(storage.getItem(STORAGE_KEY)).schemaVersion, 2);
   assert.equal(repo.getStatus().status, "recovered");
 });
 
@@ -246,13 +260,13 @@ test("untimed Practice history can exceed the ranked five-minute bound", () => {
   const repo = repository(new MemoryStorage());
   const result = repo.recordSession({
     ...session(1, "practice"),
-    wpm: 300,
+    cpm: 1_500,
     problemsSolved: 100,
     bestCombo: 75,
   });
   assert.equal(result.ok, true);
   assert.equal(repo.read().history[0].survivalMs, 600_000);
-  assert.equal(repo.read().history[0].wpm, 300);
+  assert.equal(repo.read().history[0].cpm, 1_500);
   assert.equal(repo.read().history[0].problemsSolved, 100);
   assert.equal(repo.read().history[0].bestCombo, 75);
 });

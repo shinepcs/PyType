@@ -8,7 +8,7 @@ import {
   calculateKeystrokesPerSecond,
   calculateProblemScore,
   calculateSessionMetrics,
-  calculateWpm,
+  calculateCpm,
   getAccuracyMultiplier,
   getComboMultiplier,
 } from "../js/core/scoring.js";
@@ -29,13 +29,13 @@ test("accuracy multiplier boundaries match the PRD exactly", () => {
   }
 });
 
-test("accuracy and WPM handle zero and retain two decimals", () => {
+test("accuracy and 분당 타수 handle zero and retain two decimals", () => {
   assert.equal(calculateAccuracy(0, 0), 0);
   assert.equal(calculateAccuracy(2, 3), 66.67);
-  assert.equal(calculateWpm(0, 10_000), 0);
-  assert.equal(calculateWpm(50, 60_000), 10);
-  assert.equal(calculateWpm(100, 0), 0);
-  assert.equal(calculateWpm(10_000, 1), 120_000_000, "the documented formula is not silently capped");
+  assert.equal(calculateCpm(0, 10_000), 0);
+  assert.equal(calculateCpm(50, 60_000), 50);
+  assert.equal(calculateCpm(100, 0), 0);
+  assert.equal(calculateCpm(10_000, 1), 600_000_000, "the documented formula is not silently capped");
 });
 
 test("live keystrokes per second uses correct input and active typing time", () => {

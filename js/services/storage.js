@@ -1,6 +1,6 @@
 export const STORAGE_KEY = "pythonTypingSurvival:v1";
 export const CORRUPT_BACKUP_PREFIX = STORAGE_KEY + ":corrupt:";
-export const STORAGE_SCHEMA_VERSION = 1;
+export const STORAGE_SCHEMA_VERSION = 2;
 
 export const STORAGE_LIMITS = Object.freeze({
   history: 100,
@@ -216,6 +216,15 @@ function normalizeSkill(value, errors, path) {
   };
 }
 
+function normalizeLegacyWpmMetric(value) {
+  const record = { ...value };
+  if (!("cpm" in record) && Number.isFinite(Number(record.wpm))) {
+    record.cpm = Math.round((Number(record.wpm) * 5 + Number.EPSILON) * 100) / 100;
+  }
+  delete record.wpm;
+  return record;
+}
+
 function validateSessionRecord(value, errors, path, { preserveScoreProof = false } = {}) {
   if (!isPlainObject(value)) {
     errors.push(path + " must be a JSON-safe object");
@@ -224,7 +233,7 @@ function validateSessionRecord(value, errors, path, { preserveScoreProof = false
   // Mastery owns bounded per-question history. Session history stores only the
   // summary, avoiding unbounded Practice results. Pending Quick submissions may
   // retain their <=40 score proof until the idempotent upload succeeds.
-  const summary = { ...value };
+  const summary = normalizeLegacyWpmMetric(value);
   delete summary.problemResults;
   if (!preserveScoreProof) delete summary.problemScores;
   if (!isJsonSafe(summary)) {
@@ -250,10 +259,10 @@ function validateSessionRecord(value, errors, path, { preserveScoreProof = false
       errors.push(path + "." + key + " is out of range");
     }
   }
-  for (const key of ["accuracy", "wpm"]) {
-    // The 250 WPM ceiling is an online ranking eligibility rule, not the local
+  for (const key of ["accuracy", "cpm"]) {
+    // The 1,250 타/분 ceiling is an online ranking eligibility rule, not the local
     // metric formula. Keep extreme but finite local results persistable.
-    const maximum = key === "accuracy" ? 100 : 10_000;
+    const maximum = key === "accuracy" ? 100 : 50_000;
     if (key in summary && !isFiniteInRange(summary[key], 0, maximum)) {
       errors.push(path + "." + key + " is out of range");
     }
@@ -301,8 +310,29 @@ function migrateV0(value, now) {
   };
 }
 
+function migrateV1(value) {
+  const migrateRecord = (record) => (
+    isPlainObject(record) ? normalizeLegacyWpmMetric(record) : record
+  );
+  const personalBest = isPlainObject(value.personalBest) ? value.personalBest : {};
+  return {
+    ...value,
+    schemaVersion: 2,
+    history: Array.isArray(value.history) ? value.history.map(migrateRecord) : [],
+    personalBest: {
+      ...personalBest,
+      quick: migrateRecord(personalBest.quick ?? null),
+      daily: migrateRecord(personalBest.daily ?? null),
+    },
+    pendingRankingSubmissions: Array.isArray(value.pendingRankingSubmissions)
+      ? value.pendingRankingSubmissions.map(migrateRecord)
+      : [],
+  };
+}
+
 export const STORAGE_MIGRATIONS = Object.freeze({
   0: migrateV0,
+  1: migrateV1,
 });
 
 export function migrateStorageData(input, now = () => new Date()) {
@@ -482,7 +512,7 @@ function comparePersonalBest(left, right) {
     [left.accuracy ?? 0, right.accuracy ?? 0],
     [left.problemsSolved ?? 0, right.problemsSolved ?? 0],
     [left.bestCombo ?? 0, right.bestCombo ?? 0],
-    [left.wpm ?? 0, right.wpm ?? 0],
+    [left.cpm ?? 0, right.cpm ?? 0],
   ];
   for (const [a, b] of comparisons) {
     if (a !== b) return a > b ? 1 : -1;

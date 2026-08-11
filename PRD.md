@@ -43,7 +43,7 @@ REPEAT WEAK ITEMS
 우선순위는 다음과 같으며, 아래 항목일수록 상위 항목을 침해할 수 없다.
 
 1. **짧고 많은 직접 입력**: 한 문제는 목표상 5~15초, 한 세션은 3~5분, 20~40문제다.
-2. **정확도 우선**: WPM보다 올바른 Python 입력과 오류 없는 연속 입력이 더 중요하다.
+2. **정확도 우선**: 분당 타수보다 올바른 Python 입력과 오류 없는 연속 입력이 더 중요하다.
 3. **즉시 반복**: 오답, 오타가 많았던 문제, 느린 문제를 같은 세션과 다음 세션에 다시 출제한다.
 4. **전투는 학습을 돕는 피드백**: 연출이 입력을 가리거나 다음 문제를 늦추면 안 된다.
 5. **설치 없는 접근**: GitHub Pages URL만으로 데스크톱과 모바일 브라우저에서 실행한다.
@@ -65,7 +65,7 @@ MVP는 다음 질문을 검증한다.
 
 - 완료한 세션 수와 재도전 수
 - 세션당 해결 문제 수와 입력 문자 수
-- 평균 정확도와 WPM
+- 평균 정확도와 분당 타수
 - 문제당 평균 소요시간
 - 문법별 시도 수와 숙련도
 - 오답·느린 문제의 재출제 후 개선 여부
@@ -82,7 +82,7 @@ MVP는 다음 질문을 검증한다.
 - 문제 템플릿과 결정적 문제 인스턴스 생성
 - 실시간 문자 단위 판정과 명확한 오류 표시
 - Survival 전투, 적 접근, 플레이어 위험도, 공격 피드백
-- 정확도, WPM, 모든 모드의 실시간 초당 타수, 콤보, 점수, 해결 문제 수, 생존 시간
+- 정확도, 분당 타수, 모든 모드의 실시간 초당 타수, 콤보, 점수, 해결 문제 수, 생존 시간
 - 문법별 숙련도
 - 오답 및 느린 문제 재출제
 - 닉네임
@@ -450,16 +450,16 @@ accuracy = correctKeystrokes / totalKeystrokes * 100
 - `totalKeystrokes = 0`이면 정확도는 `0`이다.
 - 화면과 저장값은 소수점 둘째 자리까지 유지하고 UI에는 한 자리로 표시할 수 있다.
 
-### 8.3 WPM
+### 8.3 분당 타수(타/분)
 
 ```text
-wpm = (correctKeystrokes / 5) / activeTypingMinutes
+cpm = correctKeystrokes / activeTypingMinutes
 ```
 
 - `activeTypingTime`은 각 문제의 첫 입력부터 정답 완료까지의 합이다.
 - 준비 화면, 결과 화면, 문제 사이 전환시간은 제외한다.
-- 한 문제에서 3초 넘게 입력이 없으면 그 이후 정지 구간은 WPM에서 제외할 수 없으며 계속 포함한다. 임의로 WPM을 부풀리는 휴지 제외 로직을 만들지 않는다.
-- `activeTypingTime = 0`이면 WPM은 `0`이다.
+- 한 문제에서 3초 넘게 입력이 없으면 그 이후 정지 구간은 분당 타수 시간에서 제외할 수 없으며 계속 포함한다. 임의로 분당 타수를 부풀리는 휴지 제외 로직을 만들지 않는다.
+- `activeTypingTime = 0`이면 분당 타수는 `0`이다.
 
 ### 8.4 첫 시도 정답과 깨끗한 해결
 
@@ -517,7 +517,7 @@ finalScore = round(sum(problemScore) * accuracyMultiplier)
 
 - `Score`
 - `Accuracy`
-- `WPM`
+- `분당 타수(타/분)`
 - `Problems Solved`
 - `Best Combo`
 - `Survival Time`
@@ -562,7 +562,7 @@ MVP는 복잡한 물리 엔진 없이 결정적인 상태 기반 전투를 사�
 - 사용자가 명시적으로 `Pause`를 누르면 타이머와 위험도 증가를 멈춘다.
 - 랭크 모드의 일시정지는 세션당 최대 1회, 최대 30초다.
 - 브라우저 탭이 숨겨지면 자동 일시정지하고 복귀 안내를 보여준다.
-- 자동 일시정지 구간은 점수와 WPM 시간에서 제외한다.
+- 자동 일시정지 구간은 점수와 분당 타수 시간에서 제외한다.
 - 랭크 모드에서 수동·자동 일시정지 누적이 30초를 넘으면 플레이는 계속할 수 있지만 `rankEligible = false`로 바꾸고 온라인 제출을 하지 않는다.
 
 ---
@@ -688,7 +688,7 @@ PLAYER: nickname
 
 - 9.3절의 지표
 - `New Personal Best` 표시
-- 같은 모드의 직전 완료 기록과 최근 5회 평균을 기준으로 `Score`, `Accuracy`, `WPM`, 해결 문제 수, 문제당 평균 소요시간의 변화량 표시
+- 같은 모드의 직전 완료 기록과 최근 5회 평균을 기준으로 `Score`, `Accuracy`, `분당 타수`, 해결 문제 수, 문제당 평균 소요시간의 변화량 표시
 - `Practice`, `Sample Logic`, `Beginner Guide` 및 서로 다른 Practice 문법 선택은 별도 비교 그룹으로 유지
 - 비교할 이전 기록이 없으면 첫 기록임을 안내하고 다음 완료부터 변화량 표시
 - 온라인 제출 중, 성공, 실패, 재시도 상태
@@ -706,7 +706,7 @@ PLAYER: nickname
 표시 열:
 
 ```text
-Rank | Player | Score | Accuracy | WPM | Problems | Date
+Rank | Player | Score | Accuracy | 분당 타수 | Problems | Date
 ```
 
 상위 100개와 현재 사용자의 위치를 표시한다. 닉네임은 항상 텍스트로 렌더링하며 HTML로 삽입하지 않는다.
@@ -801,7 +801,7 @@ pythonTypingSurvival:v1
 2. `accuracy DESC`
 3. `problems_solved DESC`
 4. `best_combo DESC`
-5. `wpm DESC`
+5. `cpm DESC`
 6. `created_at ASC`
 
 `Today`는 서버의 UTC 날짜 `00:00:00~23:59:59.999`에 생성된 기록만 사용한다. UI에 `Today 기준: UTC`를 표시한다.
@@ -817,7 +817,7 @@ pythonTypingSurvival:v1
 - 해결 문제 `1~40`
 - 생존 시간 `10,000~300,000 ms`
 - 정확도 `0~100`
-- WPM `0~250`
+- 분당 타수 `0~1250`
 - 최고 콤보 `0~40`
 - 점수 `0~10,000,000`
 - 로컬 점수 재계산 결과와 제출 점수가 일치
@@ -862,7 +862,7 @@ create table if not exists public.ranking_entries (
   player_name text not null,
   score integer not null,
   accuracy numeric(5, 2) not null,
-  wpm numeric(6, 2) not null,
+  cpm numeric(7, 2) not null,
   problems_solved smallint not null,
   best_combo smallint not null,
   survival_ms integer not null,
@@ -876,7 +876,7 @@ create table if not exists public.ranking_entries (
     check (player_name ~ '^[가-힣A-Za-z0-9_]{2,12}$'),
   constraint ranking_entries_score_check check (score between 0 and 10000000),
   constraint ranking_entries_accuracy_check check (accuracy between 0 and 100),
-  constraint ranking_entries_wpm_check check (wpm between 0 and 250),
+  constraint ranking_entries_cpm_check check (cpm between 0 and 1250),
   constraint ranking_entries_problems_check check (problems_solved between 1 and 40),
   constraint ranking_entries_combo_check check (best_combo between 0 and 40),
   constraint ranking_entries_survival_check check (survival_ms between 10000 and 300000),
@@ -1122,7 +1122,7 @@ python-typing-survival/
 
 ### 20.2 점수와 학습
 
-- [ ] 정확도, WPM, 콤보, 점수 공식이 문서와 일치한다.
+- [ ] 정확도, 분당 타수, 콤보, 점수 공식이 문서와 일치한다.
 - [ ] 98% 정확도 기록이 같은 원점수의 90% 기록보다 높은 최종 점수를 얻는다.
 - [ ] 오타가 발생하면 즉시 콤보가 끊긴다.
 - [ ] 오답 또는 느린 문제가 3~7문제 뒤 재출제되며 연속 중복은 없다.

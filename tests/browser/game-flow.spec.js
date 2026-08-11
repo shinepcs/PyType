@@ -161,13 +161,13 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
     await enterAnswer(page, answer);
     await expect(page.locator("#typing-input")).toBeDisabled();
     if (solved === 0) {
-      await expect(page.locator(".typing-speed small")).toHaveText("WPM");
-      await expect.poll(async () => Number(await page.locator("#hud-wpm").textContent())).toBeGreaterThan(0);
+      await expect(page.locator(".typing-speed small")).toHaveText("분당 타수");
+      await expect.poll(async () => Number(await page.locator("#hud-cpm").textContent())).toBeGreaterThan(0);
       const speedDisplay = await page.evaluate(() => {
         const input = document.querySelector("#typing-input").getBoundingClientRect();
         const speed = document.querySelector(".typing-speed").getBoundingClientRect();
         const rootSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
-        const value = document.querySelector("#hud-wpm");
+        const value = document.querySelector("#hud-cpm");
         const valueSize = parseFloat(getComputedStyle(value).fontSize);
         const valueBounds = value.getBoundingClientRect();
         return {
@@ -231,7 +231,7 @@ test("paste and IME remain scoped to game input and danger reaches game over", a
       endedNormally: true,
       score: 500,
       accuracy: 95,
-      wpm: 25,
+      cpm: 125,
       problemsSolved: 10,
       averageProblemMs: 8_000,
       completedAt: "2026-08-10T06:00:00.000Z",

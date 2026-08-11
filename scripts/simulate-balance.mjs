@@ -5,7 +5,7 @@ import {
   calculateAccuracy,
   calculateFinalScore,
   calculateProblemScore,
-  calculateWpm,
+  calculateCpm,
 } from "../js/core/scoring.js";
 import {
   advanceDanger,
@@ -128,7 +128,7 @@ function simulate(profile) {
     problems: problemsSolved,
     survivalSeconds: Math.round(survivalMs / 100) / 10,
     accuracy,
-    wpm: calculateWpm(correctKeystrokes, activeTypingMs),
+    cpm: calculateCpm(correctKeystrokes, activeTypingMs),
     bestCombo,
     endingDanger: Math.round(danger * 10) / 10,
     rawScore,

@@ -4,7 +4,7 @@ import {
   advanceCombo,
   calculateProblemScore,
   calculateSessionMetrics,
-  calculateWpm,
+  calculateCpm,
 } from "./scoring.js";
 import {
   advanceDanger,
@@ -611,7 +611,7 @@ export class GameState {
       rawScore: metrics.rawScore,
       accuracyMultiplier: metrics.accuracyMultiplier,
       accuracy: metrics.accuracy,
-      wpm: metrics.wpm,
+      cpm: metrics.cpm,
       keystrokesPerSecond: metrics.keystrokesPerSecond,
       problemsSolved: this.problemsSolved,
       bestCombo: this.bestCombo,
@@ -688,7 +688,7 @@ export class GameState {
       currentQuestion: this.currentQuestion,
       problemToken: this.problemToken,
       currentProblemElapsedMs: Math.round(this.currentProblemElapsedMs),
-      wpm: calculateWpm(
+      cpm: calculateCpm(
         typing.correctKeystrokes,
         typing.activeTypingMs,
       ),

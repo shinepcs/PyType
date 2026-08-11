@@ -10,7 +10,7 @@ export const SCORING = Object.freeze({
   comboStepBonus: 0.05,
   maximumComboBonus: 0.5,
   maximumFinalScore: 10_000_000,
-  maximumWpm: 250,
+  maximumCpm: 1_250,
 });
 
 export function roundTo(value, decimalPlaces = 2) {
@@ -30,14 +30,14 @@ export function calculateAccuracy(correctKeystrokes, totalKeystrokes) {
   return roundTo((correct / total) * 100, 2);
 }
 
-export function calculateWpm(correctKeystrokes, activeTypingMs) {
+export function calculateCpm(correctKeystrokes, activeTypingMs) {
   const correct = Math.max(0, Math.trunc(Number(correctKeystrokes) || 0));
   const duration = nonNegativeMilliseconds(activeTypingMs);
   if (correct === 0 || duration === 0) {
     return 0;
   }
   const minutes = duration / 60_000;
-  return roundTo(Math.max(0, correct / 5 / minutes), 2);
+  return roundTo(Math.max(0, correct / minutes), 2);
 }
 
 export function calculateKeystrokesPerSecond(correctKeystrokes, activeTypingMs) {
@@ -131,7 +131,7 @@ export function calculateSessionMetrics({
 
   return Object.freeze({
     accuracy,
-    wpm: calculateWpm(correctKeystrokes, activeTypingMs),
+    cpm: calculateCpm(correctKeystrokes, activeTypingMs),
     keystrokesPerSecond: calculateKeystrokesPerSecond(correctKeystrokes, activeTypingMs),
     rawScore: Math.round(scoreBeforeAccuracy),
     accuracyMultiplier: getAccuracyMultiplier(accuracy),

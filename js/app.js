@@ -79,7 +79,7 @@ function isBetterResult(candidate, previous) {
     [candidate.accuracy, previous.accuracy],
     [candidate.problemsSolved, previous.problemsSolved],
     [candidate.bestCombo, previous.bestCombo],
-    [candidate.wpm, previous.wpm],
+    [candidate.cpm, previous.cpm],
   ];
   for (const [left, right] of comparisons) {
     const difference = Number(left ?? 0) - Number(right ?? 0);
@@ -126,8 +126,8 @@ function isRankingPayloadEligible(result) {
     && result.survivalMs <= 300_000
     && Number(result.accuracy) >= 0
     && Number(result.accuracy) <= 100
-    && Number(result.wpm) >= 0
-    && Number(result.wpm) <= 250;
+    && Number(result.cpm) >= 0
+    && Number(result.cpm) <= 1_250;
 }
 
 function localResultToRankingRow(result, label = "LOCAL") {
@@ -137,7 +137,7 @@ function localResultToRankingRow(result, label = "LOCAL") {
     playerName: result.playerName ?? result.nickname ?? "LOCAL PLAYER",
     score: Number(result.score ?? 0),
     accuracy: Number(result.accuracy ?? 0),
-    wpm: Number(result.wpm ?? 0),
+    cpm: Number(result.cpm ?? 0),
     problemsSolved: Number(result.problemsSolved ?? 0),
     bestCombo: Number(result.bestCombo ?? 0),
     survivalMs: Number(result.survivalMs ?? 0),
@@ -797,7 +797,7 @@ class PythonTypingSurvivalApp {
     $("#pause-kind").textContent = kind === "visibility" ? "TAB FOCUS PAUSED" : "SESSION PAUSED";
     $("#pause-message").textContent = kind === "visibility"
       ? "탭을 벗어난 동안 모든 시간이 멈췄습니다. 준비되면 재개하세요."
-      : "타이머, 위험도, WPM 시간이 모두 멈춰 있습니다.";
+      : "타이머, 위험도, 분당 타수 시간이 모두 멈춰 있습니다.";
     if (!dialog.open) dialog.showModal();
     this.updatePauseDialog(this.activeSession?.game.snapshot(performance.now()));
   }

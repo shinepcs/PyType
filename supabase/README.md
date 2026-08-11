@@ -41,7 +41,7 @@ Run these checks against a separate test project before production use:
    succeeds.
 3. That user cannot insert a row for a different `user_id`.
 4. Direct update and delete fail for anonymous and authenticated clients.
-5. Out-of-range score, accuracy, WPM, time, problem count, combo, mode,
+5. Out-of-range score, accuracy, characters per minute, time, problem count, combo, mode,
    nickname, and version values fail database checks.
 6. Reusing the same `(user_id, session_id)` produces unique violation `23505`;
    the web service treats this as an idempotent success.

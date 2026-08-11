@@ -1,10 +1,10 @@
-const HEADERS = ["rank", "playerName", "score", "accuracy", "wpm", "problemsSolved", "createdAt"];
+const HEADERS = ["rank", "playerName", "score", "accuracy", "cpm", "problemsSolved", "createdAt"];
 
 function formatCell(key, value) {
   if (key === "rank") return Number.isFinite(Number(value)) ? `#${value}` : String(value ?? "—");
   if (key === "score") return Number(value).toLocaleString();
   if (key === "accuracy") return `${Number(value).toFixed(1)}%`;
-  if (key === "wpm") return Number(value).toFixed(1);
+  if (key === "cpm") return `${Number(value).toFixed(1)}타/분`;
   if (key === "createdAt") return new Intl.DateTimeFormat(undefined, { month: "2-digit", day: "2-digit" }).format(new Date(value));
   return String(value ?? "—");
 }

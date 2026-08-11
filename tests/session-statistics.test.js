@@ -14,7 +14,7 @@ function session(overrides = {}) {
     endedNormally: true,
     score: 1_000,
     accuracy: 95,
-    wpm: 30,
+    cpm: 150,
     problemsSolved: 20,
     averageProblemMs: 8_000,
     ...overrides,
@@ -44,7 +44,7 @@ test("statistics compare only the same variant and use the latest five sessions"
     score: 200 + index * 100,
     accuracy: 90 + index,
   }));
-  const current = session({ score: 800, accuracy: 96, wpm: 35, averageProblemMs: 7_000 });
+  const current = session({ score: 800, accuracy: 96, cpm: 175, averageProblemMs: 7_000 });
   const statistics = buildSessionStatistics(current, [old, unrelated, ...recent]);
 
   assert.equal(statistics.recentCount, 5);

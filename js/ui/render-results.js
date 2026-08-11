@@ -6,7 +6,7 @@ function set(id, value, root = document) {
 const COMPARISON_METRICS = Object.freeze([
   { key: "score", label: "SCORE", format: (value) => Math.round(value).toLocaleString(), deltaSuffix: "" },
   { key: "accuracy", label: "ACCURACY", format: (value) => `${value.toFixed(1)}%`, deltaSuffix: "%p" },
-  { key: "wpm", label: "WPM", format: (value) => value.toFixed(1), deltaSuffix: "" },
+  { key: "cpm", label: "분당 타수", format: (value) => `${value.toFixed(1)}타/분`, deltaSuffix: "타/분" },
   { key: "problemsSolved", label: "SOLVED", format: (value) => Math.round(value).toLocaleString(), deltaSuffix: "" },
   { key: "averageProblemMs", label: "AVG / PROBLEM", format: (value) => `${(value / 1_000).toFixed(1)}s`, deltaSuffix: "s", milliseconds: true },
 ]);
@@ -84,7 +84,7 @@ export function renderResult(result, {
   set("result-title", gameOver ? "위험도 한계 도달" : "훈련 완료", root);
   set("result-score", Number(result.score ?? 0).toLocaleString(), root);
   set("result-accuracy", `${Number(result.accuracy ?? 0).toFixed(1)}%`, root);
-  set("result-wpm", Number(result.wpm ?? 0).toFixed(1), root);
+  set("result-cpm", `${Number(result.cpm ?? 0).toFixed(1)}타/분`, root);
   set("result-solved", result.problemsSolved ?? result.solvedCount ?? 0, root);
   set("result-combo", result.bestCombo ?? 0, root);
   set("result-time", formatTime(result.survivalMs ?? 0), root);

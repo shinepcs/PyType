@@ -218,8 +218,8 @@
                   ></textarea>
                 </div>
                 <aside class="typing-speed" title="올바르게 입력한 분당 타수" aria-label="실시간 분당 타수">
-                  <small>WPM</small>
-                  <strong id="hud-wpm">0</strong>
+                  <small>분당 타수</small>
+                  <strong id="hud-cpm">0</strong>
                 </aside>
               </div>
               <div class="typing-footer">
@@ -252,7 +252,7 @@
           </div>
           <div class="result-grid" id="result-metrics">
             <div><small>ACCURACY</small><strong id="result-accuracy">0.0%</strong></div>
-            <div><small>WPM</small><strong id="result-wpm">0.0</strong></div>
+            <div><small>분당 타수</small><strong id="result-cpm">0.0타/분</strong></div>
             <div><small>SOLVED</small><strong id="result-solved">0</strong></div>
             <div><small>BEST COMBO</small><strong id="result-combo">0</strong></div>
             <div><small>SURVIVAL</small><strong id="result-time">00:00</strong></div>
@@ -304,7 +304,7 @@
             <div class="panel-state" id="ranking-state" role="status">랭킹을 불러오는 중입니다…</div>
             <div class="table-scroll" id="ranking-table-wrap" hidden>
               <table>
-                <thead><tr><th>Rank</th><th>Player</th><th>Score</th><th>Accuracy</th><th>WPM</th><th>Problems</th><th>Date</th></tr></thead>
+                <thead><tr><th>Rank</th><th>Player</th><th>Score</th><th>Accuracy</th><th>분당 타수</th><th>Problems</th><th>Date</th></tr></thead>
                 <tbody id="ranking-body"></tbody>
               </table>
             </div>
@@ -414,7 +414,7 @@
       <div>
         <p class="eyebrow" id="pause-kind">SESSION PAUSED</p>
         <h1 id="pause-title">잠시 멈췄습니다</h1>
-        <p id="pause-message">타이머, 위험도, WPM 시간이 모두 멈춰 있습니다.</p>
+        <p id="pause-message">타이머, 위험도, 분당 타수 시간이 모두 멈춰 있습니다.</p>
         <p class="pause-limit" id="pause-limit">랭크 일시정지 누적 00 / 30초</p>
         <button class="primary-button" id="resume-button" type="button">RESUME</button>
         <button class="text-button" id="quit-session" type="button">END SESSION</button>
