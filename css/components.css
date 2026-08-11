@@ -267,7 +267,8 @@ button:disabled {
 }
 
 .rival-unit-label strong {
-  max-width: 11ch;
+  font-size: 1.59rem;
+  max-width: 12ch;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

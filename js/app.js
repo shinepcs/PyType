@@ -226,11 +226,11 @@ class PythonTypingSurvivalApp {
     $("#start-daily").addEventListener("click", () => this.requestSessionStart(GAME_MODES.DAILY));
     $("#start-samples").addEventListener("click", () => this.requestSessionStart(
       GAME_MODES.PRACTICE,
-      { sampleLogic: true, timed: true },
+      { sampleLogic: true },
     ));
     $("#start-beginner").addEventListener("click", () => this.requestSessionStart(
       GAME_MODES.PRACTICE,
-      { beginnerGuide: true, timed: true },
+      { beginnerGuide: true },
     ));
     $("#open-practice").addEventListener("click", () => this.openPractice());
     $("#start-practice").addEventListener("click", () => this.startPractice());
@@ -367,8 +367,7 @@ class PythonTypingSurvivalApp {
   startPractice() {
     const skills = $all("#practice-skills input:checked").map((input) => input.value);
     if (skills.length === 0) return;
-    const timed = $("#practice-timed").checked;
-    this.requestSessionStart(GAME_MODES.PRACTICE, { skills, timed });
+    this.requestSessionStart(GAME_MODES.PRACTICE, { skills });
   }
 
   requestSessionStart(mode, options = {}) {
@@ -424,7 +423,6 @@ class PythonTypingSurvivalApp {
     const random = createSeededRandom(`${seed}:session`);
     const selector = new QuestionSelector(pool, { random });
 
-    const isUntimedPractice = mode === GAME_MODES.PRACTICE && options.timed === false;
     const maxQuestions = mode === GAME_MODES.DAILY
       ? 30
       : mode === GAME_MODES.PRACTICE
@@ -442,10 +440,10 @@ class PythonTypingSurvivalApp {
     });
     const config = mode === GAME_MODES.PRACTICE
       ? {
-          durationMs: isUntimedPractice ? null : 240_000,
+          durationMs: null,
           maxQuestions,
-          dangerEnabled: !isUntimedPractice,
-          gameOverEnabled: !isUntimedPractice,
+          dangerEnabled: false,
+          gameOverEnabled: false,
         }
       : { maxQuestions };
     const game = new GameState({
@@ -592,7 +590,7 @@ class PythonTypingSurvivalApp {
     }
     const question = this.applyLevel2Prerequisite(selected, session);
     if (!session.game.startProblem(question, now)) return;
-    session.expected = renderQuestion(question);
+    session.expected = renderQuestion(question, { timed: session.game.remainingMs !== null });
     session.problemToken = session.game.problemToken;
     const input = $("#typing-input");
     input.value = "";

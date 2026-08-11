@@ -28,7 +28,7 @@ export const MODE_CONFIGS = Object.freeze({
   }),
   [GAME_MODES.DAILY]: Object.freeze({
     mode: GAME_MODES.DAILY,
-    durationMs: 240_000,
+    durationMs: null,
     maxQuestions: 30,
     readyMs: 3_000,
     dangerEnabled: true,
@@ -75,6 +75,7 @@ export function createSessionConfig(mode, overrides = {}) {
     : nonNegativeMilliseconds(config.maximumManualPauseMs);
   config.maximumRankedPauseMs = nonNegativeMilliseconds(config.maximumRankedPauseMs);
   config.ranked = mode === GAME_MODES.QUICK && Boolean(config.ranked);
+  if (!config.ranked) config.durationMs = null;
   config.allowSkip = mode === GAME_MODES.PRACTICE && Boolean(config.allowSkip);
   return Object.freeze(config);
 }

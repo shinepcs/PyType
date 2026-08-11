@@ -20,11 +20,14 @@ function renderCodeWithBlank(node, code, isFill) {
   node.append(codeNode);
 }
 
-export function renderQuestion(question, { root = document } = {}) {
+export function renderQuestion(question, { root = document, timed = true } = {}) {
   const isFill = question.level === 2 || question.type === "fill";
   setText(byId("question-level", root), `LEVEL ${question.level}`);
   setText(byId("question-skill", root), String(question.skill).toUpperCase());
-  setText(byId("question-target", root), isFill ? "TIME PAUSED · +3 / -2" : `TARGET ${question.targetSeconds}s`);
+  setText(
+    byId("question-target", root),
+    isFill && timed ? "TIME PAUSED · +3 / -2" : isFill ? "TIME LIMIT OFF" : `TARGET ${question.targetSeconds}s`,
+  );
   setText(
     byId("question-label", root),
     isFill ? "정답 힌트 없이 코드와 OUTPUT만 보고 빈칸의 답을 입력하세요." : "보이는 코드를 공백과 줄바꿈까지 그대로 입력하세요.",
@@ -40,7 +43,9 @@ export function renderQuestion(question, { root = document } = {}) {
   setText(
     byId("typing-help", root),
     isFill
-      ? "시간 정지 · 정답 +3초 · 첫 오타 -2초 · Tab으로 입력 영역을 벗어날 수 있습니다."
+      ? timed
+        ? "시간 정지 · 정답 +3초 · 첫 오타 -2초 · Tab으로 입력 영역을 벗어날 수 있습니다."
+        : "시간 제한 없음 · Tab으로 입력 영역을 벗어날 수 있습니다."
       : "붙여넣기는 사용할 수 없습니다. Tab은 공백 4칸, Shift+Tab은 이전 조작으로 이동합니다.",
   );
   return isFill ? question.answer : question.code;
@@ -81,6 +86,7 @@ export function renderHud(state, { root = document, formatTime } = {}) {
   setText(byId("hud-score", root), Number(state.rawScore ?? state.score ?? 0).toLocaleString());
   setText(byId("battle-player-score", root), `${Number(state.rawScore ?? state.score ?? 0).toLocaleString()} PTS`);
   setText(byId("hud-combo", root), state.combo ?? 0);
+  setText(byId("hud-kps", root), Number(state.keystrokesPerSecond ?? 0).toFixed(2));
   const ordinal = state.problemOrdinal ?? ((state.solvedCount ?? 0) + 1);
   setText(byId("hud-problem", root), `${Math.min(Math.max(1, ordinal), state.maxProblems ?? 40)} / ${state.maxProblems ?? 40}`);
   const dangerPanel = root.querySelector(".danger-panel");

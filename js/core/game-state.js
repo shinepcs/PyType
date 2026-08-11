@@ -2,6 +2,7 @@ import { asClock, clamp, createSystemClock, nonNegativeMilliseconds, timestampOf
 import { createTypingEngine } from "./typing-engine.js";
 import {
   advanceCombo,
+  calculateKeystrokesPerSecond,
   calculateProblemScore,
   calculateSessionMetrics,
 } from "./scoring.js";
@@ -598,6 +599,7 @@ export class GameState {
       accuracyMultiplier: metrics.accuracyMultiplier,
       accuracy: metrics.accuracy,
       wpm: metrics.wpm,
+      keystrokesPerSecond: metrics.keystrokesPerSecond,
       problemsSolved: this.problemsSolved,
       bestCombo: this.bestCombo,
       survivalMs: Math.round(nonNegativeMilliseconds(this.activeSessionMs)),
@@ -652,6 +654,7 @@ export class GameState {
 
   snapshot(timestamp) {
     const now = this._time(timestamp);
+    const typing = this._aggregateTyping(now);
     return Object.freeze({
       phase: this.phase,
       mode: this.config.mode,
@@ -672,6 +675,10 @@ export class GameState {
       currentQuestion: this.currentQuestion,
       problemToken: this.problemToken,
       currentProblemElapsedMs: Math.round(this.currentProblemElapsedMs),
+      keystrokesPerSecond: calculateKeystrokesPerSecond(
+        typing.correctKeystrokes,
+        typing.activeTypingMs,
+      ),
       typing: this.typingEngine?.snapshot(now) ?? null,
       endReason: this.endReason,
     });

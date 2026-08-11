@@ -36,7 +36,7 @@ function gameOptions(clock, overrides = {}) {
   };
 }
 
-test("mode configs preserve Quick, Daily, and configurable Practice contracts", () => {
+test("only ranked Quick has a time limit", () => {
   const quick = createSessionConfig(GAME_MODES.QUICK);
   assert.equal(quick.durationMs, 240_000);
   assert.equal(quick.maxQuestions, 40);
@@ -44,7 +44,7 @@ test("mode configs preserve Quick, Daily, and configurable Practice contracts", 
   assert.equal(quick.ranked, true);
   const daily = createSessionConfig(GAME_MODES.DAILY);
   assert.equal(daily.maxQuestions, 30);
-  assert.equal(daily.durationMs, 240_000);
+  assert.equal(daily.durationMs, null);
   assert.equal(daily.ranked, false);
   const practice = createSessionConfig(GAME_MODES.PRACTICE, {
     durationMs: false,
@@ -55,6 +55,23 @@ test("mode configs preserve Quick, Daily, and configurable Practice contracts", 
   assert.equal(practice.dangerEnabled, false);
   assert.equal(practice.gameOverEnabled, false);
   assert.equal(practice.allowSkip, true);
+  assert.equal(createSessionConfig(GAME_MODES.DAILY, { durationMs: 1_000 }).durationMs, null);
+  assert.equal(createSessionConfig(GAME_MODES.PRACTICE, { durationMs: 1_000 }).durationMs, null);
+});
+
+test("snapshot reports live correct keystrokes per second", () => {
+  const clock = new ManualClock(0);
+  const game = new GameState(gameOptions(clock));
+  game.start();
+  game.startProblem(question({ answer: "abcd", code: "abcd", acceptedAnswers: ["abcd"] }));
+  game.handleKey("a");
+  clock.advance(500);
+  game.handleKey("b");
+  clock.advance(500);
+  assert.equal(game.snapshot().keystrokesPerSecond, 2);
+  game.pause("manual");
+  clock.advance(2_000);
+  assert.equal(game.snapshot().keystrokesPerSecond, 2, "pause time is excluded");
 });
 
 test("Daily seed uses local date and content version", () => {

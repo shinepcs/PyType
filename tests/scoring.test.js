@@ -5,6 +5,7 @@ import {
   advanceCombo,
   calculateAccuracy,
   calculateFinalScore,
+  calculateKeystrokesPerSecond,
   calculateProblemScore,
   calculateSessionMetrics,
   calculateWpm,
@@ -35,6 +36,13 @@ test("accuracy and WPM handle zero and retain two decimals", () => {
   assert.equal(calculateWpm(50, 60_000), 10);
   assert.equal(calculateWpm(100, 0), 0);
   assert.equal(calculateWpm(10_000, 1), 120_000_000, "the documented formula is not silently capped");
+});
+
+test("live keystrokes per second uses correct input and active typing time", () => {
+  assert.equal(calculateKeystrokesPerSecond(0, 1_000), 0);
+  assert.equal(calculateKeystrokesPerSecond(10, 0), 0);
+  assert.equal(calculateKeystrokesPerSecond(7, 2_000), 3.5);
+  assert.equal(calculateKeystrokesPerSecond(10, 3_000), 3.33);
 });
 
 test("problem score rounds only after level, speed, and combo terms", () => {

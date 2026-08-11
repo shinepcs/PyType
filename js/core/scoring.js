@@ -40,6 +40,15 @@ export function calculateWpm(correctKeystrokes, activeTypingMs) {
   return roundTo(Math.max(0, correct / 5 / minutes), 2);
 }
 
+export function calculateKeystrokesPerSecond(correctKeystrokes, activeTypingMs) {
+  const correct = Math.max(0, Math.trunc(Number(correctKeystrokes) || 0));
+  const duration = nonNegativeMilliseconds(activeTypingMs);
+  if (correct === 0 || duration === 0) {
+    return 0;
+  }
+  return roundTo(correct / (duration / 1_000), 2);
+}
+
 export function getAccuracyMultiplier(accuracy) {
   const safeAccuracy = clamp(accuracy, 0, 100);
   if (safeAccuracy >= 98) return 1.25;
@@ -123,6 +132,7 @@ export function calculateSessionMetrics({
   return Object.freeze({
     accuracy,
     wpm: calculateWpm(correctKeystrokes, activeTypingMs),
+    keystrokesPerSecond: calculateKeystrokesPerSecond(correctKeystrokes, activeTypingMs),
     rawScore: Math.round(scoreBeforeAccuracy),
     accuracyMultiplier: getAccuracyMultiplier(accuracy),
     finalScore: calculateFinalScore(scoreBeforeAccuracy, accuracy),

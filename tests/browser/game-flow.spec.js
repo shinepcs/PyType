@@ -156,6 +156,9 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
     }
     await enterAnswer(page, answer);
     await expect(page.locator("#typing-input")).toBeDisabled();
+    if (solved === 0) {
+      await expect.poll(async () => Number(await page.locator("#hud-kps").textContent())).toBeGreaterThan(0);
+    }
     solved += 1;
     if (encounteredLevels.size < 2 && solved < 20) await advanceToNextQuestion(page, code);
   }
@@ -226,7 +229,6 @@ test("Practice skip updates mastery, Daily repeats its seed, and reduced motion 
   const firstSkill = page.locator("#practice-skills input").first();
   const skillId = await firstSkill.getAttribute("value");
   await firstSkill.check();
-  await page.locator("#practice-timed").uncheck();
   await page.locator("#start-practice").click();
   await page.clock.runFor(50);
   await expect(page.locator("#skip-button")).toBeVisible();
@@ -251,6 +253,7 @@ test("Practice skip updates mastery, Daily repeats its seed, and reduced motion 
 
   await page.locator("#start-daily").click();
   await page.clock.runFor(3_050);
+  await expect(page.locator("#hud-time")).toHaveText("∞");
   const firstDailyCode = await page.locator("#question-code").textContent();
   await page.locator("#brand-home").click();
   await expect(page.locator("#screen-home")).toBeVisible();
@@ -357,6 +360,7 @@ test("desktop game shows rivals around YOU, online players on the right, and a n
     const you = document.querySelector(".player-unit").getBoundingClientRect();
     const behind = document.querySelector('.rival-unit[data-relation="behind"]').getBoundingClientRect();
     const ahead = document.querySelector('.rival-unit[data-relation="ahead"]').getBoundingClientRect();
+    const rivalName = document.querySelector('.rival-unit[data-relation="behind"] strong');
     return {
       behindName: document.querySelector('.rival-unit[data-relation="behind"] strong').textContent,
       aheadName: document.querySelector('.rival-unit[data-relation="ahead"] strong').textContent,
@@ -367,6 +371,8 @@ test("desktop game shows rivals around YOU, online players on the right, and a n
       youLeft: you.left,
       behindLeft: behind.left,
       aheadLeft: ahead.left,
+      rivalNameFontRatio: parseFloat(getComputedStyle(rivalName).fontSize)
+        / parseFloat(getComputedStyle(document.documentElement).fontSize),
     };
   });
   expect(competition.behindName).toBe("BehindQA");
@@ -376,6 +382,7 @@ test("desktop game shows rivals around YOU, online players on the right, and a n
   expect(competition.onlineLeft).toBeGreaterThanOrEqual(competition.mainRight);
   expect(competition.behindLeft).toBeLessThan(competition.youLeft);
   expect(competition.aheadLeft).toBeGreaterThan(competition.youLeft);
+  expect(competition.rivalNameFontRatio).toBeCloseTo(1.59, 2);
 });
 
 test("360px, 768px and 1280px layouts keep code and input inside the viewport", async ({ page }) => {
