@@ -122,6 +122,8 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
   await expect(page.locator("#ready-count")).toHaveText("3");
   await page.clock.runFor(3_050);
   await expect(page.locator("#typing-input")).toBeEnabled();
+  await expect(page.locator(".code-card")).toBeHidden();
+  await expect(page.locator("#typing-feedback")).not.toHaveText("");
 
   await page.locator("#typing-input").focus();
   await page.keyboard.press("Shift+Tab");
@@ -158,6 +160,15 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
     await expect(page.locator("#typing-input")).toBeDisabled();
     if (solved === 0) {
       await expect.poll(async () => Number(await page.locator("#hud-kps").textContent())).toBeGreaterThan(0);
+      const speedDisplay = await page.evaluate(() => {
+        const input = document.querySelector("#typing-input").getBoundingClientRect();
+        const speed = document.querySelector(".typing-speed").getBoundingClientRect();
+        const rootSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        const valueSize = parseFloat(getComputedStyle(document.querySelector("#hud-kps")).fontSize);
+        return { inputRight: input.right, speedLeft: speed.left, fontRatio: valueSize / rootSize };
+      });
+      expect(speedDisplay.speedLeft).toBeGreaterThan(speedDisplay.inputRight);
+      expect(speedDisplay.fontRatio).toBeGreaterThanOrEqual(3.54);
     }
     solved += 1;
     if (encounteredLevels.size < 2 && solved < 20) await advanceToNextQuestion(page, code);

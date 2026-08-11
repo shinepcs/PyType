@@ -137,7 +137,6 @@
               <div><small>TIME</small><strong id="hud-time">04:00</strong></div>
               <div><small>SCORE</small><strong id="hud-score">0</strong></div>
               <div><small>COMBO</small><strong id="hud-combo">0</strong></div>
-              <div title="올바르게 입력한 초당 타수"><small>KEYS / SEC</small><strong id="hud-kps">0.00</strong></div>
               <div><small>PROBLEM</small><strong id="hud-problem">1 / 40</strong></div>
             </div>
             <div class="game-actions">
@@ -197,18 +196,26 @@
                 <h2 id="typing-title">TYPE PYTHON</h2>
                 <span id="typing-progress">0 / 0</span>
               </div>
-              <pre class="typing-feedback" id="typing-feedback" aria-hidden="true"></pre>
-              <label class="visually-hidden" for="typing-input">Python 정답 입력</label>
-              <textarea
-                id="typing-input"
-                rows="3"
-                autocomplete="off"
-                autocapitalize="off"
-                autocorrect="off"
-                spellcheck="false"
-                enterkeyhint="done"
-                aria-describedby="typing-help"
-              ></textarea>
+              <div class="typing-workspace">
+                <div class="typing-input-column">
+                  <pre class="typing-feedback" id="typing-feedback" aria-hidden="true"></pre>
+                  <label class="visually-hidden" for="typing-input">Python 정답 입력</label>
+                  <textarea
+                    id="typing-input"
+                    rows="3"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                    enterkeyhint="done"
+                    aria-describedby="typing-help"
+                  ></textarea>
+                </div>
+                <aside class="typing-speed" title="올바르게 입력한 초당 타수" aria-label="실시간 초당 타수">
+                  <small>KEYS / SEC</small>
+                  <strong id="hud-kps">0.00</strong>
+                </aside>
+              </div>
               <div class="typing-footer">
                 <span id="typing-help">붙여넣기는 사용할 수 없습니다. Tab은 공백 4칸으로 입력됩니다.</span>
                 <span class="feedback-message" id="feedback-message" role="status" aria-live="polite"></span>

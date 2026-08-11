@@ -22,6 +22,8 @@ function renderCodeWithBlank(node, code, isFill) {
 
 export function renderQuestion(question, { root = document, timed = true } = {}) {
   const isFill = question.level === 2 || question.type === "fill";
+  const codeCard = byId("question-code", root)?.closest(".code-card");
+  if (codeCard) codeCard.hidden = !isFill;
   setText(byId("question-level", root), `LEVEL ${question.level}`);
   setText(byId("question-skill", root), String(question.skill).toUpperCase());
   setText(
