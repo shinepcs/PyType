@@ -304,6 +304,18 @@ test("Sample Logic starts a short executable non-ranked Practice pool", async ({
   await expect(page.locator("#skip-button")).toBeVisible();
 });
 
+test("Beginner Guide types a Korean explanation as an executable Python comment", async ({ page }) => {
+  await preparePage(page, { nickname: "BeginnerQA" });
+  await page.locator("#start-beginner").click();
+  await expect(page.locator("#game-mode-label")).toHaveText("BEGINNER GUIDE");
+  await page.clock.runFor(3_050);
+  const code = await page.locator("#question-code").textContent();
+  expect(code.startsWith("# ")).toBe(true);
+  expect(code.split("\n").length).toBeLessThanOrEqual(3);
+  await expect(page.locator("#typing-feedback")).toContainText("# ");
+  await expect(page.locator("#skip-button")).toBeVisible();
+});
+
 test("360px, 768px and 1280px layouts keep code and input inside the viewport", async ({ page }) => {
   await preparePage(page, { nickname: "LongPlayer12" });
   await page.locator("#start-quick").click();

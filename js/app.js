@@ -220,6 +220,10 @@ class PythonTypingSurvivalApp {
       GAME_MODES.PRACTICE,
       { sampleLogic: true, timed: true },
     ));
+    $("#start-beginner").addEventListener("click", () => this.requestSessionStart(
+      GAME_MODES.PRACTICE,
+      { beginnerGuide: true, timed: true },
+    ));
     $("#open-practice").addEventListener("click", () => this.openPractice());
     $("#start-practice").addEventListener("click", () => this.startPractice());
     $("#open-ranking").addEventListener("click", () => this.openRanking());
@@ -381,6 +385,7 @@ class PythonTypingSurvivalApp {
       ? this.mergeSharedPracticeQuestions(officialPool, skills)
       : officialPool;
     if (options.sampleLogic) pool = pool.filter((question) => question.tags.includes("sample-logic"));
+    if (options.beginnerGuide) pool = pool.filter((question) => question.tags.includes("beginner-guide"));
     this.storageData = this.storage.read();
     const questionStats = collectQuestionStats(
       this.storageData.history,
@@ -472,7 +477,9 @@ class PythonTypingSurvivalApp {
       [GAME_MODES.DAILY]: "DAILY TRAINING",
       [GAME_MODES.PRACTICE]: "PRACTICE",
     };
-    const modeLabel = options.sampleLogic ? "SAMPLE LOGIC" : labels[mode];
+    const modeLabel = options.beginnerGuide
+      ? "BEGINNER GUIDE"
+      : options.sampleLogic ? "SAMPLE LOGIC" : labels[mode];
     $("#game-mode-label").textContent = modeLabel;
     $("#skip-button").hidden = mode !== GAME_MODES.PRACTICE;
     $("#ready-mode").textContent = modeLabel;
