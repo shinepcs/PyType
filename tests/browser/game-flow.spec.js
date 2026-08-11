@@ -212,12 +212,14 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
   const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem("pythonTypingSurvival:v1")));
   expect(persisted.profile.nickname).toBe("코드초보_1");
   expect(persisted.history).toHaveLength(1);
+  expect(persisted.speedHistory).toHaveLength(1);
   expect(Object.keys(persisted.progress.skills).length).toBeGreaterThan(0);
 
   await page.reload();
   await expect(page.locator("#nickname-dialog")).not.toBeVisible();
   await expect(page.locator("#header-player")).toHaveText("코드초보_1");
   await page.locator("#open-progress").click();
+  await expect(page.locator("#speed-trend-chart")).toBeVisible();
   await expect(page.locator("#mastery-grid .mastery-card").first()).toBeVisible();
 });
 

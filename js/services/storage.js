@@ -1,9 +1,13 @@
+import { SPEED_HISTORY_LIMIT } from "../core/speed-history.js";
+
 export const STORAGE_KEY = "pythonTypingSurvival:v1";
+
 export const CORRUPT_BACKUP_PREFIX = STORAGE_KEY + ":corrupt:";
-export const STORAGE_SCHEMA_VERSION = 2;
+export const STORAGE_SCHEMA_VERSION = 3;
 
 export const STORAGE_LIMITS = Object.freeze({
   history: 100,
+  speedHistory: SPEED_HISTORY_LIMIT,
   recentResultsPerSkill: 20,
   pendingRankingSubmissions: 20,
 });
@@ -13,6 +17,7 @@ export const RESET_SCOPE = Object.freeze([
   "settings",
   "progress",
   "history",
+  "speedHistory",
   "personalBest",
   "pendingRankingSubmissions",
   "corruptBackups",
@@ -24,6 +29,7 @@ const ROOT_KEYS = Object.freeze([
   "settings",
   "progress",
   "history",
+  "speedHistory",
   "personalBest",
   "pendingRankingSubmissions",
 ]);
@@ -125,6 +131,7 @@ export function createDefaultStorageData(now = () => new Date()) {
       level2Prerequisites: {},
     },
     history: [],
+    speedHistory: [],
     personalBest: {
       quick: null,
       daily: null,
@@ -283,6 +290,21 @@ function normalizePendingSubmission(value, errors, path) {
   return result;
 }
 
+function normalizeSpeedHistoryEntry(value, errors, path) {
+  if (!isPlainObject(value) || !hasOnlyKeys(value, ["cpm", "completedAt", "gameMode"])
+      || !isFiniteInRange(value.cpm, 0, 50_000)
+      || !isIsoTimestamp(value.completedAt)
+      || !["quick", "daily", "practice"].includes(value.gameMode)) {
+    errors.push(path + " is invalid");
+    return null;
+  }
+  return {
+    cpm: Math.round((value.cpm + Number.EPSILON) * 100) / 100,
+    completedAt: value.completedAt,
+    gameMode: value.gameMode,
+  };
+}
+
 function migrateV0(value, now) {
   const defaults = createDefaultStorageData(now);
   const profile = isPlainObject(value.profile) ? value.profile : {};
@@ -330,9 +352,26 @@ function migrateV1(value) {
   };
 }
 
+function migrateV2(value) {
+  const speedHistory = (Array.isArray(value.history) ? value.history : [])
+    .filter((record) => (
+      Number.isFinite(Number(record?.cpm))
+      && isIsoTimestamp(record?.completedAt)
+      && ["quick", "daily", "practice"].includes(record?.gameMode)
+    ))
+    .map((record) => ({
+      cpm: Math.round((Number(record.cpm) + Number.EPSILON) * 100) / 100,
+      completedAt: record.completedAt,
+      gameMode: record.gameMode,
+    }))
+    .slice(-SPEED_HISTORY_LIMIT);
+  return { ...value, schemaVersion: 3, speedHistory };
+}
+
 export const STORAGE_MIGRATIONS = Object.freeze({
   0: migrateV0,
   1: migrateV1,
+  2: migrateV2,
 });
 
 export function migrateStorageData(input, now = () => new Date()) {
@@ -426,6 +465,14 @@ export function validateStorageData(input) {
     .map((entry, index) => validateSessionRecord(entry, errors, "history[" + index + "]"))
     .filter(Boolean);
 
+  if (!Array.isArray(input.speedHistory)) {
+    errors.push("speedHistory must be an array");
+  }
+  const speedHistory = (Array.isArray(input.speedHistory) ? input.speedHistory : [])
+    .slice(-STORAGE_LIMITS.speedHistory)
+    .map((entry, index) => normalizeSpeedHistoryEntry(entry, errors, "speedHistory[" + index + "]"))
+    .filter(Boolean);
+
   if (!isPlainObject(input.personalBest) || !hasOnlyKeys(input.personalBest, PERSONAL_BEST_KEYS)) {
     errors.push("personalBest has an invalid shape or unknown fields");
   }
@@ -468,6 +515,7 @@ export function validateStorageData(input) {
       },
       progress: { skills, level2Prerequisites },
       history,
+      speedHistory,
       personalBest,
       pendingRankingSubmissions,
     },
@@ -705,6 +753,32 @@ export class LocalStorageRepository {
       }
     }
 
+    const originalSpeedHistoryLength = canonical.speedHistory.length;
+    for (const keep of [1_000, 500, 100]) {
+      if (keep >= originalSpeedHistoryLength) continue;
+      const compacted = {
+        ...canonical,
+        history: [],
+        speedHistory: canonical.speedHistory.slice(-keep),
+      };
+      try {
+        this.trySetItem(compacted);
+        this.memory = compacted;
+        this.emitStatus("compacted", {
+          removedSpeedHistory: originalSpeedHistoryLength - compacted.speedHistory.length,
+        });
+        return {
+          ok: true,
+          persistent: true,
+          status: "compacted",
+          removedSpeedHistory: originalSpeedHistoryLength - compacted.speedHistory.length,
+          data: jsonClone(compacted),
+        };
+      } catch (error) {
+        if (!isQuotaError(error)) break;
+      }
+    }
+
     this.memory = canonical;
     this.persistent = false;
     this.emitStatus("memory", { reason: "storage_quota_exceeded" });
@@ -752,6 +826,15 @@ export class LocalStorageRepository {
     }
     return this.update((state) => {
       state.history.push(jsonClone(session));
+      if (session.endedNormally !== false && Number.isFinite(Number(session.cpm))
+          && isIsoTimestamp(session.completedAt)
+          && ["quick", "daily", "practice"].includes(session.gameMode ?? session.mode)) {
+        state.speedHistory.push({
+          cpm: Number(session.cpm),
+          completedAt: session.completedAt,
+          gameMode: session.gameMode ?? session.mode,
+        });
+      }
       const mode = session.gameMode ?? session.mode;
       if (updatePersonalBest && (mode === "quick" || mode === "daily")) {
         if (comparePersonalBest(session, state.personalBest[mode]) > 0) {

@@ -85,12 +85,13 @@ function session(index, mode = "quick") {
 
 test("default storage state uses the versioned root schema", () => {
   const data = createDefaultStorageData(() => FIXED_NOW);
-  assert.equal(data.schemaVersion, 2);
+  assert.equal(data.schemaVersion, 3);
   assert.equal(data.profile.nickname, null);
   assert.equal(data.settings.sound, false);
   assert.equal(data.settings.practiceLayout, "vertical");
   assert.deepEqual(data.progress.skills, {});
   assert.deepEqual(data.history, []);
+  assert.deepEqual(data.speedHistory, []);
   assert.equal(validateStorageData(data).ok, true);
 });
 
@@ -132,7 +133,7 @@ test("schema v0 data migrates explicitly and replaces the legacy key", () => {
 
   const loaded = repo.load();
 
-  assert.equal(loaded.schemaVersion, 2);
+  assert.equal(loaded.schemaVersion, 3);
   assert.equal(loaded.profile.nickname, "PyLearner");
   assert.equal(loaded.settings.sound, true);
   assert.equal(loaded.history.length, 1);
@@ -150,9 +151,22 @@ test("v1 speed records migrate to equivalent 분당 타수 values", () => {
 
   const loaded = repo.load();
 
-  assert.equal(loaded.schemaVersion, 2);
+  assert.equal(loaded.schemaVersion, 3);
   assert.equal(loaded.history[0].cpm, 200);
   assert.equal("wpm" in loaded.history[0], false);
+});
+
+test("v2 sessions seed the dedicated long-term speed history", () => {
+  const legacy = createDefaultStorageData(() => FIXED_NOW);
+  legacy.schemaVersion = 2;
+  delete legacy.speedHistory;
+  legacy.history = [session(1), session(2, "practice")];
+  const loaded = repository(new MemoryStorage([[STORAGE_KEY, JSON.stringify(legacy)]])).load();
+
+  assert.equal(loaded.schemaVersion, 3);
+  assert.equal(loaded.speedHistory.length, 2);
+  assert.equal(loaded.speedHistory[0].cpm, 200);
+  assert.equal(loaded.speedHistory[1].gameMode, "practice");
 });
 
 test("corrupt JSON is backed up verbatim and recovered to defaults", () => {
@@ -166,7 +180,7 @@ test("corrupt JSON is backed up verbatim and recovered to defaults", () => {
   const backupKey = storage.keys().find((key) => key.startsWith(CORRUPT_BACKUP_PREFIX));
   assert.ok(backupKey);
   assert.equal(storage.getItem(backupKey), corrupt);
-  assert.equal(JSON.parse(storage.getItem(STORAGE_KEY)).schemaVersion, 2);
+  assert.equal(JSON.parse(storage.getItem(STORAGE_KEY)).schemaVersion, 3);
   assert.equal(repo.getStatus().status, "recovered");
 });
 
@@ -186,6 +200,11 @@ test("history and skill recent results retain only documented newest limits", ()
   const repo = repository(storage);
   const data = repo.load();
   data.history = Array.from({ length: 125 }, (_, index) => session(index + 1));
+  data.speedHistory = Array.from({ length: STORAGE_LIMITS.speedHistory + 15 }, (_, index) => ({
+    cpm: index,
+    completedAt: new Date(Date.UTC(2026, 0, 1, 0, 0, index)).toISOString(),
+    gameMode: "quick",
+  }));
   data.progress.skills.print = {
     attempts: 25,
     cleanSolves: 20,
@@ -203,6 +222,8 @@ test("history and skill recent results retain only documented newest limits", ()
   assert.equal(saved.ok, true);
   assert.equal(saved.data.history.length, STORAGE_LIMITS.history);
   assert.equal(saved.data.history[0].score, 26);
+  assert.equal(saved.data.speedHistory.length, STORAGE_LIMITS.speedHistory);
+  assert.equal(saved.data.speedHistory[0].cpm, 15);
   assert.equal(
     saved.data.progress.skills.print.recentResults.length,
     STORAGE_LIMITS.recentResultsPerSkill,
@@ -269,6 +290,7 @@ test("untimed Practice history can exceed the ranked five-minute bound", () => {
   assert.equal(repo.read().history[0].cpm, 1_500);
   assert.equal(repo.read().history[0].problemsSolved, 100);
   assert.equal(repo.read().history[0].bestCombo, 75);
+  assert.equal(repo.read().speedHistory[0].cpm, 1_500);
 });
 
 test("session history strips unbounded question details after mastery can consume them", () => {

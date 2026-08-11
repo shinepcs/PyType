@@ -739,7 +739,7 @@ pythonTypingSurvival:v1
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 3,
   "profile": {
     "nickname": "PythonKing",
     "createdAt": "2026-08-11T00:00:00.000Z"
@@ -753,6 +753,7 @@ pythonTypingSurvival:v1
     "skills": {}
   },
   "history": [],
+  "speedHistory": [],
   "personalBest": {
     "quick": null,
     "daily": null
@@ -764,11 +765,12 @@ pythonTypingSurvival:v1
 ### 13.2 저장 정책
 
 - 세션 결과는 최근 100개만 유지한다.
+- 분당 타수 추세용 경량 기록은 완료한 세션 기준 최근 2,000개를 유지한다.
 - 문제별 최근 결과는 `skill`당 20개까지만 유지한다.
 - 저장 전 스키마를 검증한다.
 - 손상된 JSON은 앱을 중단시키지 말고 별도 백업 문자열로 보존한 뒤 기본값으로 복구한다.
 - 새 `schemaVersion`에는 명시적 마이그레이션 함수를 둔다.
-- 저장 용량 초과 시 오래된 히스토리부터 제거하고 프로필·설정·숙련도는 보존한다.
+- 저장 용량 초과 시 상세 히스토리를 먼저 제거하고, 그 다음 오래된 분당 타수 기록을 제거하며 프로필·설정·숙련도는 보존한다.
 - 사용자에게 로컬 데이터 초기화 기능을 제공한다.
 
 ### 13.3 개인정보 최소화

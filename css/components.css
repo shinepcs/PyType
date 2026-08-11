@@ -885,6 +885,36 @@ td:nth-child(3) {
   border-radius: var(--radius-md);
 }
 
+.speed-chart-axis {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+
+.speed-chart-grid {
+  stroke: var(--line);
+  stroke-dasharray: 3 5;
+}
+
+.speed-chart-line {
+  fill: none;
+  stroke: var(--cyan);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.speed-chart-dot {
+  fill: var(--bg-0);
+  stroke: var(--cyan);
+  stroke-width: 3;
+}
+
+.speed-chart-label {
+  fill: var(--text-faint);
+  font-family: var(--font-code);
+  font-size: 11px;
+}
+
 .mastery-card header {
   display: flex;
   justify-content: space-between;

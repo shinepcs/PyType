@@ -883,6 +883,13 @@ class PythonTypingSurvivalApp {
       state.progress.skills = updatedSkills;
       state.progress.level2Prerequisites = { ...session.level2Prerequisites };
       state.history.push(record);
+      if (record.endedNormally) {
+        state.speedHistory.push({
+          cpm: record.cpm,
+          completedAt: record.completedAt,
+          gameMode: record.gameMode,
+        });
+      }
       if (isPersonalBest) state.personalBest[result.gameMode] = record;
     });
     this.storageData = saved.ok ? this.storage.read() : before;
@@ -1131,7 +1138,7 @@ class PythonTypingSurvivalApp {
         data.progress.skills[skill.id] ?? createEmptySkillMastery(),
       ]),
     );
-    renderProgress(allSkills, data.history);
+    renderProgress(allSkills, data.history, data.speedHistory);
     this.router.show("progress");
   }
 
