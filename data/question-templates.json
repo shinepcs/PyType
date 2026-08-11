@@ -1,0 +1,629 @@
+{
+  "contentVersion": "1.0.0",
+  "templates": [
+    {
+      "id": "print.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "print",
+      "difficulty": 1,
+      "generatorId": "printLiteralCopy",
+      "parameters": {
+        "values": ["Focus", "Again", "Precise", "Python rocks"]
+      },
+      "variantCount": 4,
+      "targetSeconds": 6,
+      "tags": ["output", "quotes"],
+      "enabled": true
+    },
+    {
+      "id": "variable.fill.template.001",
+      "contentVersion": "1.0.0",
+      "level": 2,
+      "type": "fill",
+      "skill": "variable",
+      "difficulty": 1,
+      "generatorId": "interpolateFill",
+      "parameters": {
+        "code": "{{name}} = {{value}}\nprint(_____)",
+        "output": "{{value}}",
+        "answer": "{{name}}",
+        "cases": [
+          { "name": "speed", "value": 11 },
+          { "name": "level", "value": 2 },
+          { "name": "streak", "value": 4 },
+          { "name": "energy", "value": 9 }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 7,
+      "tags": ["variable", "identifier"],
+      "enabled": true
+    },
+    {
+      "id": "assignment.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "assignment",
+      "difficulty": 1,
+      "generatorId": "interpolateCopy",
+      "parameters": {
+        "code": "{{name}} = {{value}}\nprint({{name}})",
+        "output": "{{value}}",
+        "cases": [
+          { "name": "gems", "value": 5 },
+          { "name": "stars", "value": 8 },
+          { "name": "rounds", "value": 3 },
+          { "name": "points", "value": 14 }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 8,
+      "tags": ["assignment", "variable"],
+      "enabled": true
+    },
+    {
+      "id": "number.fill.template.001",
+      "contentVersion": "1.0.0",
+      "level": 2,
+      "type": "fill",
+      "skill": "number",
+      "difficulty": 1,
+      "generatorId": "interpolateFill",
+      "parameters": {
+        "code": "number = _____\nprint(number * 2)",
+        "output": "{{output}}",
+        "answer": "{{value}}",
+        "cases": [
+          { "value": 6, "output": 12 },
+          { "value": 7, "output": 14 },
+          { "value": -4, "output": -8 },
+          { "value": 12, "output": 24 }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 6,
+      "tags": ["number", "multiply"],
+      "enabled": true
+    },
+    {
+      "id": "string.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "string",
+      "difficulty": 1,
+      "generatorId": "interpolateCopy",
+      "parameters": {
+        "code": "word = \"{{word}}\"\nprint(word)",
+        "output": "{{word}}",
+        "cases": [
+          { "word": "code" },
+          { "word": "loop" },
+          { "word": "skill" },
+          { "word": "focus" }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 8,
+      "tags": ["string", "quotes"],
+      "enabled": true
+    },
+    {
+      "id": "boolean.fill.template.001",
+      "contentVersion": "1.0.0",
+      "level": 2,
+      "type": "fill",
+      "skill": "boolean",
+      "difficulty": 1,
+      "generatorId": "interpolateFill",
+      "parameters": {
+        "code": "{{name}} = _____\nprint({{name}})",
+        "output": "{{value}}",
+        "answer": "{{value}}",
+        "cases": [
+          { "name": "active", "value": "True" },
+          { "name": "done", "value": "False" },
+          { "name": "ready", "value": "True" },
+          { "name": "empty", "value": "False" }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 6,
+      "tags": ["boolean", "capitalization"],
+      "enabled": true
+    },
+    {
+      "id": "arithmetic.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "arithmetic",
+      "difficulty": 1,
+      "generatorId": "interpolateCopy",
+      "parameters": {
+        "code": "print({{left}} {{operator}} {{right}})",
+        "output": "{{output}}",
+        "cases": [
+          { "left": 9, "operator": "+", "right": 4, "output": 13 },
+          { "left": 12, "operator": "-", "right": 5, "output": 7 },
+          { "left": 6, "operator": "*", "right": 4, "output": 24 },
+          { "left": 20, "operator": "//", "right": 6, "output": 3 }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 7,
+      "tags": ["arithmetic", "operator"],
+      "enabled": true
+    },
+    {
+      "id": "comparison.fill.template.001",
+      "contentVersion": "1.0.0",
+      "level": 2,
+      "type": "fill",
+      "skill": "comparison",
+      "difficulty": 1,
+      "generatorId": "interpolateFill",
+      "parameters": {
+        "code": "print({{left}} _____ {{right}})",
+        "output": "True",
+        "answer": "{{operator}}",
+        "cases": [
+          { "left": 2, "operator": "<", "right": 7 },
+          { "left": 9, "operator": ">", "right": 3 },
+          { "left": 5, "operator": "==", "right": 5 },
+          { "left": 4, "operator": "!=", "right": 6 }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 7,
+      "tags": ["comparison", "boolean"],
+      "enabled": true
+    },
+    {
+      "id": "if.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "if",
+      "difficulty": 1,
+      "generatorId": "interpolateCopy",
+      "parameters": {
+        "code": "value = {{value}}\nif value {{operator}} {{limit}}:\n    print(\"{{word}}\")",
+        "output": "{{word}}",
+        "cases": [
+          { "value": 8, "operator": ">", "limit": 3, "word": "high" },
+          { "value": 2, "operator": "<", "limit": 5, "word": "low" },
+          { "value": 7, "operator": "==", "limit": 7, "word": "same" },
+          { "value": 6, "operator": ">=", "limit": 6, "word": "ready" }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 13,
+      "tags": ["condition", "indentation"],
+      "enabled": true
+    },
+    {
+      "id": "elif.fill.template.001",
+      "contentVersion": "1.0.0",
+      "level": 2,
+      "type": "fill",
+      "skill": "elif",
+      "difficulty": 2,
+      "generatorId": "interpolateFill",
+      "parameters": {
+        "code": "level = {{value}}\nif level == 0: print(\"zero\")\n_____ level == {{value}}: print(\"{{word}}\")",
+        "output": "{{word}}",
+        "answer": "elif",
+        "cases": [
+          { "value": 1, "word": "one" },
+          { "value": 2, "word": "two" },
+          { "value": 3, "word": "three" },
+          { "value": 4, "word": "four" }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 8,
+      "tags": ["condition", "branch"],
+      "enabled": true
+    },
+    {
+      "id": "else.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "else",
+      "difficulty": 2,
+      "generatorId": "interpolateCopy",
+      "parameters": {
+        "code": "value = {{value}}\nif value {{operator}} {{limit}}: print(\"yes\")\nelse: print(\"{{word}}\")",
+        "output": "{{word}}",
+        "cases": [
+          { "value": 1, "operator": ">", "limit": 5, "word": "small" },
+          { "value": 9, "operator": "<", "limit": 4, "word": "large" },
+          { "value": 3, "operator": "==", "limit": 8, "word": "different" },
+          { "value": 6, "operator": "!=", "limit": 6, "word": "equal" }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 15,
+      "tags": ["condition", "fallback"],
+      "enabled": true
+    },
+    {
+      "id": "for.fill.template.001",
+      "contentVersion": "1.0.0",
+      "level": 2,
+      "type": "fill",
+      "skill": "for",
+      "difficulty": 1,
+      "generatorId": "interpolateFill",
+      "parameters": {
+        "code": "_____ {{name}} in {{items}}:\n    print({{name}})",
+        "output": "{{output}}",
+        "answer": "for",
+        "cases": [
+          { "name": "n", "items": "[1, 3]", "output": "1\n3" },
+          { "name": "word", "items": "[\"go\", \"run\"]", "output": "go\nrun" },
+          { "name": "flag", "items": "[True, False]", "output": "True\nFalse" },
+          { "name": "x", "items": "[5, 10]", "output": "5\n10" }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 7,
+      "tags": ["loop", "keyword"],
+      "enabled": true
+    },
+    {
+      "id": "range.fill.template.001",
+      "contentVersion": "1.0.0",
+      "level": 2,
+      "type": "fill",
+      "skill": "range",
+      "difficulty": 1,
+      "generatorId": "rangeFillAscending",
+      "parameters": {
+        "startMin": 5,
+        "startMax": 8,
+        "lengthMin": 3,
+        "lengthMax": 4
+      },
+      "variantCount": 4,
+      "targetSeconds": 8,
+      "tags": ["loop", "builtin"],
+      "enabled": true
+    },
+    {
+      "id": "while.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "while",
+      "difficulty": 2,
+      "generatorId": "interpolateCopy",
+      "parameters": {
+        "code": "{{name}} = {{start}}\nwhile {{name}} > 0: print({{name}}); {{name}} -= {{step}}",
+        "output": "{{output}}",
+        "cases": [
+          { "name": "n", "start": 3, "step": 1, "output": "3\n2\n1" },
+          { "name": "count", "start": 4, "step": 2, "output": "4\n2" },
+          { "name": "timer", "start": 2, "step": 1, "output": "2\n1" },
+          { "name": "value", "start": 6, "step": 3, "output": "6\n3" }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 15,
+      "tags": ["loop", "condition"],
+      "enabled": true
+    },
+    {
+      "id": "break.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "break",
+      "difficulty": 2,
+      "generatorId": "interpolateCopy",
+      "parameters": {
+        "code": "for n in {{items}}:\n    if n == {{stop}}: break\n    print(n)",
+        "output": "{{output}}",
+        "cases": [
+          { "items": "[2, 4, 6]", "stop": 4, "output": "2" },
+          { "items": "[3, 6, 9]", "stop": 9, "output": "3\n6" },
+          { "items": "[1, 5, 7]", "stop": 5, "output": "1" },
+          { "items": "[4, 8, 12]", "stop": 12, "output": "4\n8" }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 15,
+      "tags": ["flow", "loop"],
+      "enabled": true
+    },
+    {
+      "id": "continue.fill.template.001",
+      "contentVersion": "1.0.0",
+      "level": 2,
+      "type": "fill",
+      "skill": "continue",
+      "difficulty": 2,
+      "generatorId": "interpolateFill",
+      "parameters": {
+        "code": "for n in {{items}}:\n    if n == {{skip}}: _____\n    print(n)",
+        "output": "{{output}}",
+        "answer": "continue",
+        "cases": [
+          { "items": "[2, 4, 6]", "skip": 4, "output": "2\n6" },
+          { "items": "[3, 6, 9]", "skip": 3, "output": "6\n9" },
+          { "items": "[1, 5, 7]", "skip": 7, "output": "1\n5" },
+          { "items": "[4, 8, 12]", "skip": 8, "output": "4\n12" }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 8,
+      "tags": ["flow", "loop"],
+      "enabled": true
+    },
+    {
+      "id": "list.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "list",
+      "difficulty": 1,
+      "generatorId": "interpolateCopy",
+      "parameters": {
+        "code": "items = {{items}}\nprint(items[{{index}}])",
+        "output": "{{output}}",
+        "cases": [
+          { "items": "[3, 6, 9]", "index": 2, "output": 9 },
+          { "items": "[\"x\", \"y\"]", "index": 1, "output": "y" },
+          { "items": "[True, False]", "index": 0, "output": "True" },
+          { "items": "[8, 5, 2]", "index": 1, "output": 5 }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 10,
+      "tags": ["collection", "index"],
+      "enabled": true
+    },
+    {
+      "id": "append.fill.template.001",
+      "contentVersion": "1.0.0",
+      "level": 2,
+      "type": "fill",
+      "skill": "append",
+      "difficulty": 1,
+      "generatorId": "interpolateFill",
+      "parameters": {
+        "code": "items = {{items}}\nitems._____({{value}})\nprint(items)",
+        "output": "{{output}}",
+        "answer": "append",
+        "cases": [
+          { "items": "[1]", "value": 2, "output": "[1, 2]" },
+          { "items": "[\"a\"]", "value": "\"b\"", "output": "['a', 'b']" },
+          { "items": "[]", "value": "True", "output": "[True]" },
+          { "items": "[4, 5]", "value": 6, "output": "[4, 5, 6]" }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 7,
+      "tags": ["collection", "method"],
+      "enabled": true
+    },
+    {
+      "id": "pop.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "pop",
+      "difficulty": 2,
+      "generatorId": "interpolateCopy",
+      "parameters": {
+        "code": "items = {{items}}\nvalue = items.pop({{index}})\nprint(value)",
+        "output": "{{output}}",
+        "cases": [
+          { "items": "[4, 8, 12]", "index": 0, "output": 4 },
+          { "items": "[\"a\", \"b\", \"c\"]", "index": 1, "output": "b" },
+          { "items": "[True, False]", "index": 0, "output": "True" },
+          { "items": "[5, 10, 15]", "index": 2, "output": 15 }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 14,
+      "tags": ["collection", "method"],
+      "enabled": true
+    },
+    {
+      "id": "sort.fill.template.001",
+      "contentVersion": "1.0.0",
+      "level": 2,
+      "type": "fill",
+      "skill": "sort",
+      "difficulty": 1,
+      "generatorId": "interpolateFill",
+      "parameters": {
+        "code": "items = {{items}}\nitems._____()\nprint(items)",
+        "output": "{{output}}",
+        "answer": "sort",
+        "cases": [
+          { "items": "[4, 1, 3]", "output": "[1, 3, 4]" },
+          { "items": "[9, 2, 6]", "output": "[2, 6, 9]" },
+          { "items": "[\"c\", \"a\", \"b\"]", "output": "['a', 'b', 'c']" },
+          { "items": "[7, 5, 8]", "output": "[5, 7, 8]" }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 7,
+      "tags": ["collection", "ordering"],
+      "enabled": true
+    },
+    {
+      "id": "reverse.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "reverse",
+      "difficulty": 1,
+      "generatorId": "interpolateCopy",
+      "parameters": {
+        "code": "items = {{items}}\nitems.reverse()\nprint(items)",
+        "output": "{{output}}",
+        "cases": [
+          { "items": "[1, 4, 7]", "output": "[7, 4, 1]" },
+          { "items": "[\"x\", \"y\"]", "output": "['y', 'x']" },
+          { "items": "[True, False]", "output": "[False, True]" },
+          { "items": "[2, 3, 5, 8]", "output": "[8, 5, 3, 2]" }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 13,
+      "tags": ["collection", "ordering"],
+      "enabled": true
+    },
+    {
+      "id": "len.fill.template.001",
+      "contentVersion": "1.0.0",
+      "level": 2,
+      "type": "fill",
+      "skill": "len",
+      "difficulty": 1,
+      "generatorId": "interpolateFill",
+      "parameters": {
+        "code": "print(_____({{value}}))",
+        "output": "{{output}}",
+        "answer": "len",
+        "cases": [
+          { "value": "[1, 2, 3, 4]", "output": 4 },
+          { "value": "\"code\"", "output": 4 },
+          { "value": "[True, False]", "output": 2 },
+          { "value": "\"typing\"", "output": 6 }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 6,
+      "tags": ["builtin", "length"],
+      "enabled": true
+    },
+    {
+      "id": "sum.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "sum",
+      "difficulty": 1,
+      "generatorId": "interpolateCopy",
+      "parameters": {
+        "code": "numbers = {{numbers}}\nprint(sum(numbers))",
+        "output": "{{output}}",
+        "cases": [
+          { "numbers": "[1, 2, 3]", "output": 6 },
+          { "numbers": "[5, 5, 5]", "output": 15 },
+          { "numbers": "[-2, 4, 6]", "output": 8 },
+          { "numbers": "[10, 20]", "output": 30 }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 10,
+      "tags": ["builtin", "arithmetic"],
+      "enabled": true
+    },
+    {
+      "id": "min.fill.template.001",
+      "contentVersion": "1.0.0",
+      "level": 2,
+      "type": "fill",
+      "skill": "min",
+      "difficulty": 1,
+      "generatorId": "interpolateFill",
+      "parameters": {
+        "code": "print(_____({{values}}))",
+        "output": "{{output}}",
+        "answer": "min",
+        "cases": [
+          { "values": "[4, 7, 2]", "output": 2 },
+          { "values": "[-3, 0, 5]", "output": -3 },
+          { "values": "[12, 8, 10]", "output": 8 },
+          { "values": "[6, 6, 9]", "output": 6 }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 6,
+      "tags": ["builtin", "minimum"],
+      "enabled": true
+    },
+    {
+      "id": "max.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "max",
+      "difficulty": 1,
+      "generatorId": "interpolateCopy",
+      "parameters": {
+        "code": "values = {{values}}\nprint(max(values))",
+        "output": "{{output}}",
+        "cases": [
+          { "values": "[4, 7, 2]", "output": 7 },
+          { "values": "[-3, 0, 5]", "output": 5 },
+          { "values": "[12, 8, 10]", "output": 12 },
+          { "values": "[6, 6, 9]", "output": 9 }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 10,
+      "tags": ["builtin", "maximum"],
+      "enabled": true
+    },
+    {
+      "id": "random.fill.template.001",
+      "contentVersion": "1.0.0",
+      "level": 2,
+      "type": "fill",
+      "skill": "random",
+      "difficulty": 2,
+      "generatorId": "interpolateFill",
+      "parameters": {
+        "code": "import random\nprint(random._____({{low}}, {{high}}))",
+        "output": "{{example}}",
+        "outputMode": "example",
+        "answer": "randint",
+        "cases": [
+          { "low": 2, "high": 5, "example": 3 },
+          { "low": 10, "high": 12, "example": 11 },
+          { "low": -2, "high": 2, "example": 0 },
+          { "low": 20, "high": 25, "example": 24 }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 8,
+      "tags": ["module", "example-output"],
+      "enabled": true
+    },
+    {
+      "id": "shuffle.copy.template.001",
+      "contentVersion": "1.0.0",
+      "level": 1,
+      "type": "copy",
+      "skill": "shuffle",
+      "difficulty": 2,
+      "generatorId": "interpolateCopy",
+      "parameters": {
+        "code": "import random\nitems = {{items}}\nrandom.shuffle(items); print(items)",
+        "output": "{{example}}",
+        "outputMode": "example",
+        "cases": [
+          { "items": "[1, 3, 5]", "example": "[5, 1, 3]" },
+          { "items": "[4, 5, 6]", "example": "[5, 6, 4]" },
+          { "items": "[\"a\", \"b\"]", "example": "['b', 'a']" },
+          { "items": "[True, False]", "example": "[False, True]" }
+        ]
+      },
+      "variantCount": 4,
+      "targetSeconds": 15,
+      "tags": ["module", "example-output"],
+      "enabled": true
+    }
+  ]
+}

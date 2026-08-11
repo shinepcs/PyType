@@ -1,0 +1,21 @@
+{
+  "name": "python-typing-survival",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "test:browser": "playwright test",
+    "check": "node scripts/check-source.mjs",
+    "validate:content": "node scripts/validate-content.mjs",
+    "simulate": "node scripts/simulate-balance.mjs",
+    "build:pages": "npm run check && node scripts/prepare-pages.mjs",
+    "serve": "node scripts/serve.mjs"
+  },
+  "engines": {
+    "node": ">=20.11"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
+}

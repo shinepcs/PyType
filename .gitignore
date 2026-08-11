@@ -1,0 +1,12 @@
+supabase_token.txt
+supabase_db_pass.txt
+.env
+.env.*
+!.env.example
+node_modules/
+playwright-report/
+test-results/
+coverage/
+.pages-dist/
+supabase/.temp/
+.DS_Store

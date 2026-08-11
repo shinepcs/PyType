@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#090d18" />
+    <meta
+      name="description"
+      content="짧은 Python 코드를 정확하게 반복 입력하는 타이핑 생존 학습 게임"
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.supabase.co; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+    />
+    <title>Python Typing Survival</title>
+    <link rel="icon" href="./assets/icons/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./css/tokens.css" />
+    <link rel="stylesheet" href="./css/base.css" />
+    <link rel="stylesheet" href="./css/layout.css" />
+    <link rel="stylesheet" href="./css/components.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">본문으로 건너뛰기</a>
+    <div class="app-shell">
+      <header class="site-header">
+        <button class="brand-button" id="brand-home" type="button" aria-label="홈으로 이동">
+          <span class="brand-mark" aria-hidden="true">&gt;_</span>
+          <span>
+            <strong>PYTHON TYPING</strong>
+            <small>SURVIVAL</small>
+          </span>
+        </button>
+        <div class="header-status">
+          <span class="network-badge" id="network-badge" data-status="offline">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span id="network-label">RANKING OFFLINE</span>
+          </span>
+          <span class="player-chip">PLAYER <strong id="header-player">—</strong></span>
+        </div>
+      </header>
+
+      <main id="main-content" tabindex="-1">
+        <section class="screen home-screen" id="screen-home" data-screen="home" aria-labelledby="home-title">
+          <div class="hero-copy">
+            <p class="eyebrow">PYTHON MUSCLE MEMORY TRAINING</p>
+            <h1 id="home-title">코드는 눈으로 배우는 게 아니다.<br /><span>직접 쳐야 내 것이 된다.</span></h1>
+            <p class="hero-description">
+              짧은 Python 코드를 정확하게 입력하고, 오타를 고치고, 약한 문법을 다시 만나세요.
+            </p>
+            <div class="session-promise" aria-label="기본 세션 정보">
+              <span><strong>4 MIN</strong> QUICK PLAY</span>
+              <span><strong>20–40</strong> SHORT PROBLEMS</span>
+              <span><strong>ACCURACY</strong> FIRST</span>
+            </div>
+          </div>
+
+          <div class="home-grid">
+            <button class="mode-card mode-card-primary" id="start-quick" type="button">
+              <span class="mode-index">01</span>
+              <span class="mode-body">
+                <strong>QUICK PLAY</strong>
+                <small>240초 표준 생존전 · 온라인 랭킹</small>
+              </span>
+              <span class="mode-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="mode-card" id="start-daily" type="button">
+              <span class="mode-index">02</span>
+              <span class="mode-body">
+                <strong>DAILY TRAINING</strong>
+                <small>오늘의 결정적 30문제 · 비랭크</small>
+              </span>
+              <span class="mode-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="mode-card" id="open-practice" type="button">
+              <span class="mode-index">03</span>
+              <span class="mode-body">
+                <strong>PRACTICE</strong>
+                <small>원하는 문법을 골라 자유 연습</small>
+              </span>
+              <span class="mode-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <nav class="utility-nav" aria-label="학습 및 설정">
+            <button id="open-ranking" type="button">RANKING</button>
+            <button id="open-progress" type="button">PROGRESS</button>
+            <button id="open-settings" type="button">SETTINGS</button>
+          </nav>
+        </section>
+
+        <section class="screen setup-screen" id="screen-practice" data-screen="practice" aria-labelledby="practice-title" hidden>
+          <div class="screen-heading">
+            <div>
+              <p class="eyebrow">PRACTICE SETUP</p>
+              <h1 id="practice-title">연습할 문법을 선택하세요</h1>
+              <p>하나 이상 선택할 수 있습니다. 기록은 숙련도에 반영되지만 온라인 랭킹에는 등록되지 않습니다.</p>
+            </div>
+            <button class="text-button" data-nav-home type="button">← HOME</button>
+          </div>
+          <div class="skill-select-grid" id="practice-skills" role="group" aria-label="연습 문법"></div>
+          <div class="setup-options">
+            <label class="switch-row">
+              <span><strong>시간 제한</strong><small>끄면 문제 수를 기준으로 끝납니다.</small></span>
+              <input id="practice-timed" type="checkbox" checked />
+            </label>
+            <button class="primary-button" id="start-practice" type="button" disabled>START PRACTICE</button>
+          </div>
+        </section>
+
+        <section class="screen game-screen" id="screen-game" data-screen="game" aria-labelledby="game-mode-title" hidden>
+          <div class="game-topbar">
+            <div>
+              <p class="eyebrow" id="game-mode-label">QUICK PLAY</p>
+              <h1 class="visually-hidden" id="game-mode-title">게임 진행</h1>
+            </div>
+            <div class="hud-metrics" aria-label="현재 게임 상태">
+              <div><small>TIME</small><strong id="hud-time">04:00</strong></div>
+              <div><small>SCORE</small><strong id="hud-score">0</strong></div>
+              <div><small>COMBO</small><strong id="hud-combo">0</strong></div>
+              <div><small>PROBLEM</small><strong id="hud-problem">1 / 40</strong></div>
+            </div>
+            <div class="game-actions">
+              <button class="secondary-button" id="skip-button" type="button" hidden>SKIP</button>
+              <button class="icon-button" id="pause-button" type="button" aria-label="게임 일시정지">Ⅱ</button>
+            </div>
+          </div>
+
+          <div class="danger-panel">
+            <div class="danger-label"><span>DANGER</span><strong id="danger-value">20%</strong></div>
+            <div class="danger-track" role="progressbar" aria-label="위험도" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20">
+              <span id="danger-fill"></span>
+            </div>
+          </div>
+
+          <div class="battle-lane" id="battle-lane" aria-hidden="true">
+            <div class="grid-horizon"></div>
+            <div class="player-unit"><span class="unit-core"></span><span class="unit-label">YOU</span></div>
+            <div class="enemy-unit enemy-one"><span class="enemy-face">×</span></div>
+            <div class="enemy-unit enemy-two"><span class="enemy-face">×</span></div>
+            <div class="attack-trace" id="attack-trace"></div>
+          </div>
+
+          <div class="problem-layout">
+            <article class="code-card" aria-labelledby="question-label">
+              <header>
+                <div>
+                  <span class="level-badge" id="question-level">LEVEL 1</span>
+                  <span class="skill-badge" id="question-skill">PRINT</span>
+                </div>
+                <span class="target-time" id="question-target">TARGET 7s</span>
+              </header>
+              <p class="question-instruction" id="question-label">보이는 코드를 그대로 입력하세요.</p>
+              <pre class="code-display" id="question-code"><code>print("Ready")</code></pre>
+              <div class="output-panel" id="output-panel" hidden>
+                <span id="output-label">OUTPUT</span>
+                <pre id="question-output"></pre>
+              </div>
+            </article>
+
+            <section class="typing-card" aria-labelledby="typing-title">
+              <div class="typing-heading">
+                <h2 id="typing-title">TYPE PYTHON</h2>
+                <span id="typing-progress">0 / 0</span>
+              </div>
+              <pre class="typing-feedback" id="typing-feedback" aria-hidden="true"></pre>
+              <label class="visually-hidden" for="typing-input">Python 정답 입력</label>
+              <textarea
+                id="typing-input"
+                rows="3"
+                autocomplete="off"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                enterkeyhint="done"
+                aria-describedby="typing-help"
+              ></textarea>
+              <div class="typing-footer">
+                <span id="typing-help">붙여넣기는 사용할 수 없습니다. Tab은 공백 4칸으로 입력됩니다.</span>
+                <span class="feedback-message" id="feedback-message" role="status" aria-live="polite"></span>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="screen result-screen" id="screen-result" data-screen="result" aria-labelledby="result-title" hidden>
+          <div class="result-hero">
+            <p class="eyebrow" id="result-reason">SESSION COMPLETE</p>
+            <h1 id="result-title">훈련 완료</h1>
+            <div class="score-lockup"><small>SCORE</small><strong id="result-score">0</strong><span id="new-best" hidden>NEW PERSONAL BEST</span></div>
+          </div>
+          <div class="result-grid" id="result-metrics">
+            <div><small>ACCURACY</small><strong id="result-accuracy">0.0%</strong></div>
+            <div><small>WPM</small><strong id="result-wpm">0.0</strong></div>
+            <div><small>SOLVED</small><strong id="result-solved">0</strong></div>
+            <div><small>BEST COMBO</small><strong id="result-combo">0</strong></div>
+            <div><small>SURVIVAL</small><strong id="result-time">00:00</strong></div>
+            <div><small>CORRECT KEYS</small><strong id="result-keys">0</strong></div>
+          </div>
+          <section class="weak-skills" aria-labelledby="weak-title">
+            <h2 id="weak-title">다시 연습할 문법</h2>
+            <div id="weak-skill-list"></div>
+          </section>
+          <div class="ranking-submit-status" id="ranking-submit-status" role="status">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span id="ranking-submit-label">로컬 결과 저장 완료</span>
+            <button class="text-button" id="retry-ranking" type="button" hidden>RETRY</button>
+          </div>
+          <div class="result-actions">
+            <button class="primary-button" id="play-again" type="button">PLAY AGAIN</button>
+            <button class="secondary-button" id="result-ranking" type="button">RANKING</button>
+            <button class="text-button" data-nav-home type="button">HOME</button>
+          </div>
+        </section>
+
+        <section class="screen ranking-screen" id="screen-ranking" data-screen="ranking" aria-labelledby="ranking-title" hidden>
+          <div class="screen-heading">
+            <div>
+              <p class="eyebrow">QUICK PLAY LEADERBOARD</p>
+              <h1 id="ranking-title">Ranking</h1>
+              <p>Today 기준: UTC · 사용자별 최고 기록 한 개만 표시합니다.</p>
+            </div>
+            <button class="text-button" data-nav-home type="button">← HOME</button>
+          </div>
+          <div class="ranking-tabs" role="tablist" aria-label="랭킹 구분">
+            <button id="rank-tab-global" role="tab" aria-selected="true" aria-controls="ranking-panel" data-ranking-tab="global" type="button">GLOBAL</button>
+            <button id="rank-tab-today" role="tab" aria-selected="false" aria-controls="ranking-panel" data-ranking-tab="today" type="button">TODAY</button>
+            <button id="rank-tab-mine" role="tab" aria-selected="false" aria-controls="ranking-panel" data-ranking-tab="mine" type="button">MY BEST</button>
+          </div>
+          <div class="ranking-panel" id="ranking-panel" role="tabpanel" tabindex="0">
+            <div class="panel-state" id="ranking-state" role="status">랭킹을 불러오는 중입니다…</div>
+            <div class="table-scroll" id="ranking-table-wrap" hidden>
+              <table>
+                <thead><tr><th>Rank</th><th>Player</th><th>Score</th><th>Accuracy</th><th>WPM</th><th>Problems</th><th>Date</th></tr></thead>
+                <tbody id="ranking-body"></tbody>
+              </table>
+            </div>
+            <button class="secondary-button" id="retry-ranking-list" type="button" hidden>RETRY</button>
+          </div>
+          <p class="ranking-note">이 랭킹은 교육용 친선 경쟁입니다. 클라이언트 점수이므로 완전한 치팅 방지는 제공하지 않습니다.</p>
+        </section>
+
+        <section class="screen progress-screen" id="screen-progress" data-screen="progress" aria-labelledby="progress-title" hidden>
+          <div class="screen-heading">
+            <div>
+              <p class="eyebrow">LOCAL LEARNING DATA</p>
+              <h1 id="progress-title">문법별 숙련도</h1>
+              <p>최근 20회의 정확도, 깨끗한 해결, 속도를 바탕으로 이 브라우저에만 저장됩니다.</p>
+            </div>
+            <button class="text-button" data-nav-home type="button">← HOME</button>
+          </div>
+          <div class="progress-summary" id="progress-summary"></div>
+          <div class="mastery-grid" id="mastery-grid"></div>
+        </section>
+
+        <section class="screen settings-screen" id="screen-settings" data-screen="settings" aria-labelledby="settings-title" hidden>
+          <div class="screen-heading">
+            <div><p class="eyebrow">LOCAL PREFERENCES</p><h1 id="settings-title">Settings</h1></div>
+            <button class="text-button" data-nav-home type="button">← HOME</button>
+          </div>
+          <form class="settings-form" id="settings-form">
+            <label>
+              <span><strong>닉네임</strong><small>2~12자 한글·영문·숫자·밑줄</small></span>
+              <input id="settings-nickname" name="nickname" maxlength="12" autocomplete="nickname" required />
+            </label>
+            <label class="switch-row">
+              <span><strong>움직임 줄이기</strong><small>전투 이동과 섬광을 최소화합니다.</small></span>
+              <input id="settings-motion" name="reducedMotion" type="checkbox" />
+            </label>
+            <label>
+              <span><strong>코드 글자 크기</strong><small id="font-scale-label">100%</small></span>
+              <input id="settings-font-scale" name="fontScale" type="range" min="0.9" max="1.3" step="0.1" value="1" />
+            </label>
+            <div class="settings-actions">
+              <button class="primary-button" type="submit">SAVE SETTINGS</button>
+              <button class="danger-button" id="reset-data" type="button">RESET LOCAL DATA</button>
+            </div>
+            <p class="form-message" id="settings-message" role="status"></p>
+          </form>
+        </section>
+
+        <section class="screen error-screen" id="screen-error" data-screen="error" aria-labelledby="error-title" hidden>
+          <p class="eyebrow">RECOVERABLE ERROR</p>
+          <h1 id="error-title">콘텐츠를 준비하지 못했습니다.</h1>
+          <p id="error-message">잠시 후 다시 시도하거나 홈으로 돌아가세요.</p>
+          <div><button class="primary-button" id="retry-app" type="button">RETRY</button><button class="text-button" data-nav-home type="button">HOME</button></div>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="nickname-dialog" id="nickname-dialog" aria-labelledby="nickname-title">
+      <form method="dialog" id="nickname-form">
+        <span class="brand-mark" aria-hidden="true">&gt;_</span>
+        <p class="eyebrow">WELCOME, CODER</p>
+        <h1 id="nickname-title">플레이어 이름을 정하세요</h1>
+        <p>실명이나 개인정보 대신 게임용 닉네임을 사용하세요.</p>
+        <label for="nickname-input">닉네임</label>
+        <input id="nickname-input" maxlength="12" autocomplete="nickname" placeholder="PythonRookie" required />
+        <p class="input-hint">2~12자 · 한글, 영문, 숫자, 밑줄</p>
+        <p class="form-error" id="nickname-error" role="alert"></p>
+        <button class="primary-button" value="default" type="submit">START TRAINING</button>
+      </form>
+    </dialog>
+
+    <dialog class="pause-dialog" id="pause-dialog" aria-labelledby="pause-title">
+      <div>
+        <p class="eyebrow" id="pause-kind">SESSION PAUSED</p>
+        <h1 id="pause-title">잠시 멈췄습니다</h1>
+        <p id="pause-message">타이머, 위험도, WPM 시간이 모두 멈춰 있습니다.</p>
+        <p class="pause-limit" id="pause-limit">랭크 일시정지 누적 00 / 30초</p>
+        <button class="primary-button" id="resume-button" type="button">RESUME</button>
+        <button class="text-button" id="quit-session" type="button">END SESSION</button>
+      </div>
+    </dialog>
+
+    <dialog class="confirm-dialog" id="reset-dialog" aria-labelledby="reset-title">
+      <div>
+        <h1 id="reset-title">로컬 데이터를 초기화할까요?</h1>
+        <p>닉네임, 설정, 숙련도, 최근 결과, 개인 최고 기록이 이 브라우저에서 모두 삭제됩니다.</p>
+        <div><button class="danger-button" id="confirm-reset" type="button">RESET EVERYTHING</button><button class="secondary-button" id="cancel-reset" type="button">CANCEL</button></div>
+      </div>
+    </dialog>
+
+    <div class="ready-overlay" id="ready-overlay" role="status" aria-live="assertive" hidden>
+      <span id="ready-mode">QUICK PLAY</span>
+      <strong id="ready-count">3</strong>
+      <small>입력창에 포커스가 자동으로 이동합니다.</small>
+    </div>
+
+    <div class="sr-status visually-hidden" id="sr-status" aria-live="polite"></div>
+    <noscript>이 게임을 실행하려면 JavaScript를 활성화해야 합니다.</noscript>
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>

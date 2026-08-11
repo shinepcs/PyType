@@ -1,0 +1,221 @@
+{
+  "contentVersion": "1.0.0",
+  "skills": [
+    {
+      "id": "print",
+      "category": "output",
+      "label": "print",
+      "description": "print()와 출력 문자열을 정확히 입력합니다.",
+      "order": 1,
+      "enabled": true
+    },
+    {
+      "id": "variable",
+      "category": "variables",
+      "label": "변수",
+      "description": "변수 이름을 만들고 값을 읽는 입력을 연습합니다.",
+      "order": 2,
+      "enabled": true
+    },
+    {
+      "id": "assignment",
+      "category": "variables",
+      "label": "대입",
+      "description": "등호를 사용해 변수에 값을 대입합니다.",
+      "order": 3,
+      "enabled": true
+    },
+    {
+      "id": "number",
+      "category": "values",
+      "label": "숫자",
+      "description": "정수와 음수 리터럴을 정확히 입력합니다.",
+      "order": 4,
+      "enabled": true
+    },
+    {
+      "id": "string",
+      "category": "values",
+      "label": "문자열",
+      "description": "따옴표를 포함한 문자열 리터럴을 입력합니다.",
+      "order": 5,
+      "enabled": true
+    },
+    {
+      "id": "boolean",
+      "category": "values",
+      "label": "불리언",
+      "description": "True와 False의 대소문자를 익힙니다.",
+      "order": 6,
+      "enabled": true
+    },
+    {
+      "id": "arithmetic",
+      "category": "operators",
+      "label": "산술 연산",
+      "description": "기본 산술 연산자와 계산 표현을 입력합니다.",
+      "order": 7,
+      "enabled": true
+    },
+    {
+      "id": "comparison",
+      "category": "operators",
+      "label": "비교 연산",
+      "description": "값을 비교하는 연산자와 표현을 입력합니다.",
+      "order": 8,
+      "enabled": true
+    },
+    {
+      "id": "if",
+      "category": "conditions",
+      "label": "if",
+      "description": "if 조건문의 콜론과 들여쓰기를 연습합니다.",
+      "order": 9,
+      "enabled": true
+    },
+    {
+      "id": "elif",
+      "category": "conditions",
+      "label": "elif",
+      "description": "여러 조건을 잇는 elif 구문을 연습합니다.",
+      "order": 10,
+      "enabled": true
+    },
+    {
+      "id": "else",
+      "category": "conditions",
+      "label": "else",
+      "description": "나머지 경우를 처리하는 else 구문을 연습합니다.",
+      "order": 11,
+      "enabled": true
+    },
+    {
+      "id": "for",
+      "category": "loops",
+      "label": "for",
+      "description": "for 반복문의 구조와 들여쓰기를 연습합니다.",
+      "order": 12,
+      "enabled": true
+    },
+    {
+      "id": "range",
+      "category": "loops",
+      "label": "range",
+      "description": "range()의 시작과 끝을 읽고 입력합니다.",
+      "order": 13,
+      "enabled": true
+    },
+    {
+      "id": "while",
+      "category": "loops",
+      "label": "while",
+      "description": "조건 기반 반복문을 짧게 입력합니다.",
+      "order": 14,
+      "enabled": true
+    },
+    {
+      "id": "break",
+      "category": "flow",
+      "label": "break",
+      "description": "반복을 즉시 끝내는 break를 연습합니다.",
+      "order": 15,
+      "enabled": true
+    },
+    {
+      "id": "continue",
+      "category": "flow",
+      "label": "continue",
+      "description": "현재 반복을 건너뛰는 continue를 연습합니다.",
+      "order": 16,
+      "enabled": true
+    },
+    {
+      "id": "list",
+      "category": "collections",
+      "label": "리스트",
+      "description": "대괄호와 리스트 인덱싱을 입력합니다.",
+      "order": 17,
+      "enabled": true
+    },
+    {
+      "id": "append",
+      "category": "collections",
+      "label": "append",
+      "description": "리스트 끝에 값을 추가하는 메서드를 연습합니다.",
+      "order": 18,
+      "enabled": true
+    },
+    {
+      "id": "pop",
+      "category": "collections",
+      "label": "pop",
+      "description": "리스트에서 값을 꺼내는 메서드를 연습합니다.",
+      "order": 19,
+      "enabled": true
+    },
+    {
+      "id": "sort",
+      "category": "collections",
+      "label": "sort",
+      "description": "리스트를 오름차순으로 정렬하는 입력을 연습합니다.",
+      "order": 20,
+      "enabled": true
+    },
+    {
+      "id": "reverse",
+      "category": "collections",
+      "label": "reverse",
+      "description": "리스트 순서를 뒤집는 메서드를 연습합니다.",
+      "order": 21,
+      "enabled": true
+    },
+    {
+      "id": "len",
+      "category": "builtins",
+      "label": "len",
+      "description": "길이를 구하는 len() 호출을 입력합니다.",
+      "order": 22,
+      "enabled": true
+    },
+    {
+      "id": "sum",
+      "category": "builtins",
+      "label": "sum",
+      "description": "숫자 모음의 합을 구하는 sum()을 연습합니다.",
+      "order": 23,
+      "enabled": true
+    },
+    {
+      "id": "min",
+      "category": "builtins",
+      "label": "min",
+      "description": "최솟값을 구하는 min()을 연습합니다.",
+      "order": 24,
+      "enabled": true
+    },
+    {
+      "id": "max",
+      "category": "builtins",
+      "label": "max",
+      "description": "최댓값을 구하는 max()를 연습합니다.",
+      "order": 25,
+      "enabled": true
+    },
+    {
+      "id": "random",
+      "category": "modules",
+      "label": "random",
+      "description": "random 모듈의 짧은 호출과 예시 출력을 읽습니다.",
+      "order": 26,
+      "enabled": true
+    },
+    {
+      "id": "shuffle",
+      "category": "modules",
+      "label": "shuffle",
+      "description": "리스트를 섞는 shuffle()과 예시 출력을 연습합니다.",
+      "order": 27,
+      "enabled": true
+    }
+  ]
+}

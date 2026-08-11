@@ -1,0 +1,136 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--bg-0);
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(93, 228, 255, 0.09), transparent 36rem),
+    radial-gradient(circle at 90% 45%, rgba(180, 156, 255, 0.07), transparent 32rem),
+    linear-gradient(180deg, var(--bg-1), var(--bg-0) 72%);
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.017) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.017) 1px, transparent 1px);
+  background-size: 32px 32px;
+  content: "";
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button,
+input[type="checkbox"],
+input[type="range"] {
+  cursor: pointer;
+}
+
+button {
+  color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1,
+h2,
+strong {
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 4.7rem);
+  line-height: 0.98;
+}
+
+h2 {
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+}
+
+p {
+  color: var(--text-soft);
+  line-height: 1.65;
+}
+
+small {
+  color: var(--text-soft);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  padding: 0.7rem 1rem;
+  color: var(--bg-0);
+  background: var(--cyan);
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  transform: translateY(-160%);
+  transition: transform var(--transition);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+::selection {
+  color: var(--bg-0);
+  background: var(--cyan);
+}
+
+noscript {
+  display: block;
+  max-width: 45rem;
+  margin: 3rem auto;
+  padding: 1rem;
+  color: var(--red);
+  border: 1px solid currentColor;
+}

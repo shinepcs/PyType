@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Python Typing Survival</title>
+  </head>
+  <body>
+    <p>게임 홈으로 이동합니다.</p>
+    <script>
+      const parts = window.location.pathname.split("/").filter(Boolean);
+      const base = parts.length > 0 ? `/${parts[0]}/` : "/";
+      window.location.replace(base);
+    </script>
+  </body>
+</html>
