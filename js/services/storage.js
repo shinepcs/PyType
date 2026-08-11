@@ -28,7 +28,8 @@ const ROOT_KEYS = Object.freeze([
   "pendingRankingSubmissions",
 ]);
 const PROFILE_KEYS = Object.freeze(["nickname", "createdAt"]);
-const SETTINGS_KEYS = Object.freeze(["sound", "reducedMotion", "fontScale"]);
+const SETTINGS_KEYS = Object.freeze(["sound", "reducedMotion", "fontScale", "practiceLayout"]);
+const PRACTICE_LAYOUTS = Object.freeze(["horizontal", "vertical"]);
 const PROGRESS_KEYS = Object.freeze(["skills", "level2Prerequisites"]);
 const PERSONAL_BEST_KEYS = Object.freeze(["quick", "daily"]);
 const SKILL_KEYS = Object.freeze([
@@ -117,6 +118,7 @@ export function createDefaultStorageData(now = () => new Date()) {
       sound: false,
       reducedMotion: false,
       fontScale: 1,
+      practiceLayout: "horizontal",
     },
     progress: {
       skills: {},
@@ -355,6 +357,10 @@ export function validateStorageData(input) {
   if (!isFiniteInRange(input.settings?.fontScale, 0.75, 1.5)) {
     errors.push("settings.fontScale must be between 0.75 and 1.5");
   }
+  if (input.settings?.practiceLayout !== undefined
+      && !PRACTICE_LAYOUTS.includes(input.settings.practiceLayout)) {
+    errors.push("settings.practiceLayout must be horizontal or vertical");
+  }
 
   if (!isPlainObject(input.progress) || !hasOnlyKeys(input.progress, PROGRESS_KEYS)
       || !isPlainObject(input.progress?.skills)
@@ -428,6 +434,7 @@ export function validateStorageData(input) {
         sound: input.settings.sound,
         reducedMotion: input.settings.reducedMotion,
         fontScale: input.settings.fontScale,
+        practiceLayout: input.settings.practiceLayout ?? "horizontal",
       },
       progress: { skills, level2Prerequisites },
       history,

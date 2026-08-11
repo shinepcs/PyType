@@ -378,10 +378,45 @@ button:disabled {
   min-height: 31rem;
 }
 
+.practice-layout-toggle {
+  display: inline-flex;
+  padding: 0.2rem;
+  background: var(--bg-0);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.practice-layout-toggle button {
+  min-height: 2rem;
+  padding: 0.3rem 0.65rem;
+  color: var(--text-faint);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  font-family: var(--font-code);
+  font-size: 0.68rem;
+}
+
+.practice-layout-toggle button[aria-pressed="true"] {
+  color: var(--bg-0);
+  background: var(--cyan);
+}
+
 #screen-game[data-beginner-guide="true"] .code-display {
   min-height: 23rem;
   max-height: 55vh;
   overflow: auto;
+}
+
+#screen-game[data-beginner-guide="true"] .code-display,
+#screen-game[data-beginner-guide="true"] #typing-input {
+  scrollbar-gutter: stable;
+}
+
+.code-display code {
+  font: inherit;
+  letter-spacing: inherit;
+  word-spacing: inherit;
 }
 
 #screen-game[data-beginner-guide="true"] .typing-feedback {
@@ -420,6 +455,60 @@ button:disabled {
   max-height: 55vh;
   overflow: auto;
   resize: vertical;
+}
+
+#screen-game[data-beginner-guide="true"][data-practice-layout="vertical"] .code-card,
+#screen-game[data-beginner-guide="true"][data-practice-layout="vertical"] .typing-card {
+  min-height: auto;
+}
+
+#screen-game[data-beginner-guide="true"][data-practice-layout="vertical"] .code-display,
+#screen-game[data-beginner-guide="true"][data-practice-layout="vertical"] .typing-feedback,
+#screen-game[data-beginner-guide="true"][data-practice-layout="vertical"] #typing-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: calc(5.1em + 2rem + 2px);
+  min-height: calc(5.1em + 2rem + 2px);
+  max-height: calc(5.1em + 2rem + 2px);
+  padding: 1rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  resize: none;
+  scrollbar-gutter: stable;
+}
+
+#screen-game[data-beginner-guide="true"][data-practice-layout="vertical"] .typing-feedback {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: block;
+  margin: 0;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  pointer-events: none;
+}
+
+#screen-game[data-beginner-guide="true"][data-practice-layout="vertical"] #typing-input {
+  color: transparent;
+  caret-color: transparent;
+}
+
+#screen-game[data-beginner-guide="true"][data-practice-layout="vertical"] .code-display::after,
+#screen-game[data-beginner-guide="true"][data-practice-layout="vertical"] .typing-feedback::after {
+  display: block;
+  height: 2em;
+  content: "";
+}
+
+#screen-game[data-beginner-guide="true"][data-practice-layout="vertical"] .typing-feedback .correct {
+  color: var(--text);
+}
+
+#screen-game[data-beginner-guide="true"][data-practice-layout="vertical"] .practice-caret {
+  display: inline;
+  background: transparent;
+  border-left: 2px solid var(--cyan);
 }
 
 @media (max-width: 900px) {
@@ -501,6 +590,7 @@ button:disabled {
 }
 
 .typing-input-column {
+  position: relative;
   min-width: 0;
 }
 

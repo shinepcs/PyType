@@ -22,6 +22,46 @@ function renderCodeWithBlank(node, code, isFill) {
   node.append(codeNode);
 }
 
+export function syncTypingPracticeScroll({ root = document } = {}) {
+  const screen = byId("screen-game", root);
+  if (screen?.dataset.beginnerGuide !== "true"
+      || screen.dataset.practiceLayout !== "vertical") return;
+
+  const reference = byId("question-code", root);
+  const input = byId("typing-input", root);
+  const visualInput = byId("typing-feedback", root);
+  const cursor = reference?.querySelector(".cursor");
+  if (!reference || !input || !visualInput || !cursor) return;
+
+  const style = getComputedStyle(reference);
+  const lineHeight = Number.parseFloat(style.lineHeight);
+  const paddingTop = Number.parseFloat(style.paddingTop);
+  if (!Number.isFinite(lineHeight) || !Number.isFinite(paddingTop)) return;
+
+  const referenceBounds = reference.getBoundingClientRect();
+  const cursorBounds = cursor.getBoundingClientRect();
+  const cursorTop = cursorBounds.top - referenceBounds.top + reference.scrollTop;
+  const centeredScrollTop = Math.max(0, cursorTop - paddingTop - lineHeight);
+  reference.scrollTop = centeredScrollTop;
+  visualInput.scrollTop = reference.scrollTop;
+  input.scrollTop = reference.scrollTop;
+}
+
+function renderPracticeInputFeedback(node, expected, actual) {
+  if (!node) return;
+  node.replaceChildren();
+  for (let index = 0; index < actual.length; index += 1) {
+    const span = document.createElement("span");
+    span.className = actual[index] === expected[index] ? "correct" : "incorrect";
+    span.textContent = actual[index];
+    node.append(span);
+  }
+  const caret = document.createElement("span");
+  caret.className = "cursor practice-caret";
+  caret.textContent = "\u200b";
+  node.append(caret);
+}
+
 export function renderQuestion(question, { root = document, timed = true } = {}) {
   const isFill = question.level === 2 || question.type === "fill";
   const isBeginnerGuide = question.tags?.includes("beginner-guide") === true;
@@ -110,6 +150,9 @@ export function renderTypingFeedback(
   }
   if (renderOnReference) {
     node.append(contentNode);
+    renderPracticeInputFeedback(byId("typing-feedback", root), expected, actual);
+    syncTypingPracticeScroll({ root });
+    requestAnimationFrame(() => syncTypingPracticeScroll({ root }));
   }
 
   setText(byId("typing-progress", root), `${actual.length} / ${expected.length}`);

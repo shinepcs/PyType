@@ -356,11 +356,112 @@ test("Beginner Guide presents one of 50 practical long-form programs in a focuse
       codeWidth: codeDisplay.width,
       inputWidth: input.width,
       inputHeight: input.height,
+      referenceFontSize: getComputedStyle(document.querySelector("#question-code code")).fontSize,
+      inputFontSize: getComputedStyle(document.querySelector("#typing-input")).fontSize,
     };
   });
   expect(desktopGeometry.typingLeft).toBeGreaterThanOrEqual(desktopGeometry.referenceRight);
   expect(Math.abs(desktopGeometry.codeWidth - desktopGeometry.inputWidth)).toBeLessThan(2);
   expect(desktopGeometry.inputHeight).toBeGreaterThan(300);
+  expect(desktopGeometry.referenceFontSize).toBe(desktopGeometry.inputFontSize);
+
+  await page.locator("#practice-layout-vertical").click();
+  await expect(page.locator("#screen-game")).toHaveAttribute("data-practice-layout", "vertical");
+  await expect(page.locator("#practice-layout-vertical")).toHaveAttribute("aria-pressed", "true");
+  expect(await page.evaluate(() => (
+    JSON.parse(localStorage.getItem("pythonTypingSurvival:v1")).settings.practiceLayout
+  ))).toBe("vertical");
+  const verticalGeometry = await page.evaluate(() => {
+    const referenceCard = document.querySelector(".code-card").getBoundingClientRect();
+    const typingCard = document.querySelector(".typing-card").getBoundingClientRect();
+    const reference = document.querySelector("#question-code");
+    const input = document.querySelector("#typing-feedback");
+    const referenceStyle = getComputedStyle(reference);
+    const referenceTextStyle = getComputedStyle(reference.querySelector("code"));
+    const inputStyle = getComputedStyle(input);
+    return {
+      referenceBottom: referenceCard.bottom,
+      typingTop: typingCard.top,
+      referenceHeight: reference.getBoundingClientRect().height,
+      inputHeight: input.getBoundingClientRect().height,
+      referenceContentHeight: reference.clientHeight
+        - Number.parseFloat(referenceStyle.paddingTop)
+        - Number.parseFloat(referenceStyle.paddingBottom),
+      inputContentHeight: input.clientHeight
+        - Number.parseFloat(inputStyle.paddingTop)
+        - Number.parseFloat(inputStyle.paddingBottom),
+      expectedThreeLineHeight: Number.parseFloat(referenceStyle.lineHeight) * 3,
+      referenceFontSize: referenceTextStyle.fontSize,
+      inputFontSize: inputStyle.fontSize,
+      referenceLineHeight: referenceStyle.lineHeight,
+      inputLineHeight: inputStyle.lineHeight,
+      referenceWidth: reference.getBoundingClientRect().width,
+      inputWidth: input.getBoundingClientRect().width,
+    };
+  });
+  expect(verticalGeometry.typingTop).toBeGreaterThanOrEqual(verticalGeometry.referenceBottom);
+  expect(Math.abs(verticalGeometry.referenceContentHeight - verticalGeometry.expectedThreeLineHeight)).toBeLessThan(1);
+  expect(Math.abs(verticalGeometry.inputContentHeight - verticalGeometry.expectedThreeLineHeight)).toBeLessThan(1);
+  expect(Math.abs(verticalGeometry.referenceHeight - verticalGeometry.inputHeight)).toBeLessThan(1);
+  expect(verticalGeometry.referenceFontSize).toBe(verticalGeometry.inputFontSize);
+  expect(verticalGeometry.referenceLineHeight).toBe(verticalGeometry.inputLineHeight);
+  expect(Math.abs(verticalGeometry.referenceWidth - verticalGeometry.inputWidth)).toBeLessThan(2);
+
+  for (const viewport of [
+    { width: 360, height: 800 },
+    { width: 768, height: 900 },
+    { width: 1280, height: 900 },
+  ]) {
+    await page.setViewportSize(viewport);
+    const responsiveVertical = await page.evaluate(() => {
+      const reference = document.querySelector("#question-code");
+      const input = document.querySelector("#typing-feedback");
+      const style = getComputedStyle(reference);
+      return {
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: innerWidth,
+        referenceRight: reference.getBoundingClientRect().right,
+        inputRight: input.getBoundingClientRect().right,
+        referenceRows: (reference.clientHeight
+          - Number.parseFloat(style.paddingTop)
+          - Number.parseFloat(style.paddingBottom)) / Number.parseFloat(style.lineHeight),
+      };
+    });
+    expect(responsiveVertical.documentWidth).toBeLessThanOrEqual(responsiveVertical.viewportWidth);
+    expect(responsiveVertical.referenceRight).toBeLessThanOrEqual(responsiveVertical.viewportWidth);
+    expect(responsiveVertical.inputRight).toBeLessThanOrEqual(responsiveVertical.viewportWidth);
+    expect(responsiveVertical.referenceRows).toBeCloseTo(3, 1);
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
+
+  const fourthLineStart = code.split("\n").slice(0, 3).join("\n") + "\n";
+  await page.locator("#typing-input").focus();
+  await page.keyboard.insertText(fourthLineStart);
+  await page.clock.runFor(20);
+  const synchronizedScroll = await page.evaluate(() => {
+    const reference = document.querySelector("#question-code");
+    const input = document.querySelector("#typing-feedback");
+    const cursor = reference.querySelector(".cursor");
+    const style = getComputedStyle(reference);
+    return {
+      referenceScrollTop: reference.scrollTop,
+      inputScrollTop: input.scrollTop,
+      cursorRow: (cursor.getBoundingClientRect().top
+        - reference.getBoundingClientRect().top
+        - Number.parseFloat(style.paddingTop)) / Number.parseFloat(style.lineHeight),
+    };
+  });
+  expect(synchronizedScroll.referenceScrollTop).toBeGreaterThan(0);
+  expect(Math.abs(synchronizedScroll.referenceScrollTop - synchronizedScroll.inputScrollTop)).toBeLessThan(1);
+  expect(synchronizedScroll.cursorRow).toBeGreaterThan(0.8);
+  expect(synchronizedScroll.cursorRow).toBeLessThan(1.2);
+
+  for (let index = 0; index < fourthLineStart.length; index += 1) {
+    await page.keyboard.press("Backspace");
+  }
+  await expect(page.locator("#typing-input")).toHaveValue("");
+
+  await page.locator("#practice-layout-horizontal").click();
   for (const viewport of [
     { width: 360, height: 800 },
     { width: 768, height: 900 },

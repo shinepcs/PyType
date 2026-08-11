@@ -18,7 +18,13 @@ import { createPresenceService } from "./services/presence.js";
 import { createStorageRepository } from "./services/storage.js";
 import { createSupabaseClient } from "./services/supabase-client.js";
 import { announce, applyAccessibilitySettings } from "./ui/accessibility.js";
-import { renderHud, renderQuestion, renderTypingFeedback, triggerAttack } from "./ui/render-game.js";
+import {
+  renderHud,
+  renderQuestion,
+  renderTypingFeedback,
+  syncTypingPracticeScroll,
+  triggerAttack,
+} from "./ui/render-game.js";
 import { renderProgress } from "./ui/render-progress.js";
 import { renderRankingState, selectRankingTab } from "./ui/render-ranking.js";
 import { renderRankingSubmission, renderResult } from "./ui/render-results.js";
@@ -251,6 +257,8 @@ class PythonTypingSurvivalApp {
     $("#question-editor-form").addEventListener("submit", (event) => this.saveSharedQuestion(event));
     $("#play-again").addEventListener("click", () => this.playAgain());
     $("#pause-button").addEventListener("click", () => this.pauseManually());
+    $("#practice-layout-horizontal").addEventListener("click", () => this.setPracticeLayout("horizontal"));
+    $("#practice-layout-vertical").addEventListener("click", () => this.setPracticeLayout("vertical"));
     $("#skip-button").addEventListener("click", () => this.skipPracticeQuestion());
     $("#resume-button").addEventListener("click", () => this.resumeSession());
     $("#quit-session").addEventListener("click", () => this.quitSession());
@@ -304,6 +312,24 @@ class PythonTypingSurvivalApp {
     $("#settings-font-scale").value = String(data.settings.fontScale);
     $("#font-scale-label").textContent = `${Math.round(data.settings.fontScale * 100)}%`;
     applyAccessibilitySettings(data.settings);
+    this.applyPracticeLayout(data.settings.practiceLayout);
+  }
+
+  applyPracticeLayout(layout) {
+    const selected = layout === "vertical" ? "vertical" : "horizontal";
+    $("#screen-game").dataset.practiceLayout = selected;
+    $("#practice-layout-horizontal").setAttribute("aria-pressed", String(selected === "horizontal"));
+    $("#practice-layout-vertical").setAttribute("aria-pressed", String(selected === "vertical"));
+    requestAnimationFrame(() => syncTypingPracticeScroll());
+  }
+
+  setPracticeLayout(layout) {
+    const selected = layout === "vertical" ? "vertical" : "horizontal";
+    const result = this.storage.setSettings({ practiceLayout: selected });
+    if (!result.ok) return;
+    this.storageData = this.storage.read();
+    this.applyPracticeLayout(selected);
+    announce(`타이핑 연습 레이아웃을 ${selected === "vertical" ? "세로" : "가로"}로 변경했습니다.`);
   }
 
   handleStorageStatus(status) {
@@ -498,6 +524,8 @@ class PythonTypingSurvivalApp {
       ? "BEGINNER GUIDE · 50 PRACTICAL SNIPPETS"
       : options.sampleLogic ? "SAMPLE LOGIC" : labels[mode];
     $("#screen-game").dataset.beginnerGuide = String(Boolean(options.beginnerGuide));
+    $("#practice-layout-toggle").hidden = !options.beginnerGuide;
+    this.applyPracticeLayout(this.storageData?.settings.practiceLayout);
     $("#game-mode-label").textContent = modeLabel;
     $("#skip-button").hidden = mode !== GAME_MODES.PRACTICE;
     $("#ready-mode").textContent = modeLabel;

@@ -88,6 +88,7 @@ test("default storage state uses the single v1 root schema", () => {
   assert.equal(data.schemaVersion, 1);
   assert.equal(data.profile.nickname, null);
   assert.equal(data.settings.sound, false);
+  assert.equal(data.settings.practiceLayout, "horizontal");
   assert.deepEqual(data.progress.skills, {});
   assert.deepEqual(data.history, []);
   assert.equal(validateStorageData(data).ok, true);
@@ -100,6 +101,22 @@ test("unknown root and nested fields are rejected before persistence", () => {
   const settingsUnknown = createDefaultStorageData(() => FIXED_NOW);
   settingsUnknown.settings.tracking = true;
   assert.equal(validateStorageData(settingsUnknown).ok, false);
+});
+
+test("practice layout accepts both orientations and upgrades older v1 settings", () => {
+  const vertical = createDefaultStorageData(() => FIXED_NOW);
+  vertical.settings.practiceLayout = "vertical";
+  assert.equal(validateStorageData(vertical).ok, true);
+
+  const invalid = createDefaultStorageData(() => FIXED_NOW);
+  invalid.settings.practiceLayout = "diagonal";
+  assert.equal(validateStorageData(invalid).ok, false);
+
+  const olderV1 = createDefaultStorageData(() => FIXED_NOW);
+  delete olderV1.settings.practiceLayout;
+  const normalized = validateStorageData(olderV1);
+  assert.equal(normalized.ok, true);
+  assert.equal(normalized.value.settings.practiceLayout, "horizontal");
 });
 
 test("schema v0 data migrates explicitly and replaces the legacy key", () => {

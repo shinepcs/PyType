@@ -335,6 +335,11 @@
   align-items: stretch;
 }
 
+#screen-game[data-beginner-guide="true"][data-practice-layout="vertical"] .problem-layout {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
 .danger-label {
   display: flex;
   justify-content: space-between;
