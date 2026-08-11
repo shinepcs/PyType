@@ -385,8 +385,34 @@ button:disabled {
 }
 
 #screen-game[data-beginner-guide="true"] .typing-feedback {
-  max-height: 8rem;
-  overflow: auto;
+  display: none;
+  min-height: 0;
+  margin: 0;
+}
+
+#screen-game[data-beginner-guide="true"] .typing-workspace {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+#screen-game[data-beginner-guide="true"] .typing-speed {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  justify-self: end;
+  min-height: 0;
+  width: auto;
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+}
+
+#screen-game[data-beginner-guide="true"] .typing-speed small {
+  font-size: 0.58rem;
+}
+
+#screen-game[data-beginner-guide="true"] .typing-speed strong {
+  font-size: 1rem;
+  line-height: 1;
 }
 
 #screen-game[data-beginner-guide="true"] #typing-input {
@@ -517,9 +543,12 @@ button:disabled {
   color: var(--text-faint);
 }
 
-.typing-feedback .correct { color: var(--lime); }
-.typing-feedback .incorrect { color: var(--red); text-decoration: underline wavy currentColor; }
-.typing-feedback .cursor { color: var(--text); background: rgba(93, 228, 255, 0.18); }
+.typing-feedback .correct,
+.code-display .correct { color: var(--lime); }
+.typing-feedback .incorrect,
+.code-display .incorrect { color: var(--red); text-decoration: underline wavy currentColor; }
+.typing-feedback .cursor,
+.code-display .cursor { color: var(--text); background: rgba(93, 228, 255, 0.18); }
 
 #typing-input,
 .settings-form input:not([type="checkbox"]):not([type="range"]),

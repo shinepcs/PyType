@@ -602,13 +602,17 @@ class PythonTypingSurvivalApp {
     const question = this.applyLevel2Prerequisite(selected, session);
     if (!session.game.startProblem(question, now)) return;
     session.expected = renderQuestion(question, { timed: session.game.remainingMs !== null });
-    session.concealPending = question.level === 2 || question.tags?.includes("beginner-guide") === true;
+    session.isBeginnerGuide = question.tags?.includes("beginner-guide") === true;
+    session.concealPending = question.level === 2 || session.isBeginnerGuide;
     session.problemToken = session.game.problemToken;
     const input = $("#typing-input");
     input.value = "";
     input.disabled = false;
     $("#feedback-message").textContent = "";
-    renderTypingFeedback(session.expected, "", { concealPending: session.concealPending });
+    renderTypingFeedback(session.expected, "", {
+      concealPending: session.concealPending,
+      renderOnReference: session.isBeginnerGuide,
+    });
     requestAnimationFrame(() => input.focus({ preventScroll: true }));
   }
 
@@ -670,6 +674,7 @@ class PythonTypingSurvivalApp {
       concealPending: session.concealPending
         || snapshot.currentQuestion?.level === 2
         || outcome?.problemResult?.level === 2,
+      renderOnReference: session.isBeginnerGuide,
     });
     this.renderActiveHud(snapshot);
 

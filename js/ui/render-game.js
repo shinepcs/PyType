@@ -67,25 +67,49 @@ export function renderQuestion(question, { root = document, timed = true } = {})
   return isFill ? question.answer : question.code;
 }
 
-export function renderTypingFeedback(expected, actual, { root = document, concealPending = false } = {}) {
-  const node = byId("typing-feedback", root);
+export function renderTypingFeedback(
+  expected,
+  actual,
+  { root = document, concealPending = false, renderOnReference = false } = {},
+) {
+  const node = byId(renderOnReference ? "question-code" : "typing-feedback", root);
   node.replaceChildren();
-  const max = concealPending ? actual.length : Math.max(expected.length, actual.length + 1);
+  const contentNode = renderOnReference ? document.createElement("code") : node;
+  const max = renderOnReference
+    ? Math.max(expected.length, actual.length)
+    : concealPending
+      ? actual.length
+      : Math.max(expected.length, actual.length + 1);
   for (let index = 0; index < max; index += 1) {
     const span = document.createElement("span");
     const expectedCharacter = expected[index];
     const actualCharacter = actual[index];
     if (index < actual.length) {
       span.className = actualCharacter === expectedCharacter ? "correct" : "incorrect";
-      span.textContent = actualCharacter === "\n" ? "↵\n" : actualCharacter;
+      const displayedCharacter = renderOnReference && expectedCharacter !== undefined
+        ? expectedCharacter
+        : actualCharacter;
+      span.textContent = displayedCharacter === "\n"
+        ? renderOnReference ? "\n" : "↵\n"
+        : displayedCharacter;
+      if (renderOnReference && actualCharacter !== expectedCharacter) {
+        span.title = `입력: ${actualCharacter === "\n" ? "줄바꿈" : actualCharacter}`;
+      }
     } else if (index === actual.length && index < expected.length) {
       span.className = "cursor";
-      span.textContent = expectedCharacter === "\n" ? "↵\n" : expectedCharacter;
+      span.textContent = expectedCharacter === "\n"
+        ? renderOnReference ? "\n" : "↵\n"
+        : expectedCharacter;
     } else if (expectedCharacter !== undefined) {
       span.className = "pending";
-      span.textContent = expectedCharacter === "\n" ? "↵\n" : expectedCharacter;
+      span.textContent = expectedCharacter === "\n"
+        ? renderOnReference ? "\n" : "↵\n"
+        : expectedCharacter;
     }
-    node.append(span);
+    contentNode.append(span);
+  }
+  if (renderOnReference) {
+    node.append(contentNode);
   }
 
   setText(byId("typing-progress", root), `${actual.length} / ${expected.length}`);

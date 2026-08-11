@@ -348,10 +348,18 @@ test("Beginner Guide presents one of 50 practical long-form programs in a focuse
   const desktopGeometry = await page.evaluate(() => {
     const reference = document.querySelector(".code-card").getBoundingClientRect();
     const typing = document.querySelector(".typing-card").getBoundingClientRect();
+    const codeDisplay = document.querySelector("#question-code").getBoundingClientRect();
     const input = document.querySelector("#typing-input").getBoundingClientRect();
-    return { referenceRight: reference.right, typingLeft: typing.left, inputHeight: input.height };
+    return {
+      referenceRight: reference.right,
+      typingLeft: typing.left,
+      codeWidth: codeDisplay.width,
+      inputWidth: input.width,
+      inputHeight: input.height,
+    };
   });
   expect(desktopGeometry.typingLeft).toBeGreaterThanOrEqual(desktopGeometry.referenceRight);
+  expect(Math.abs(desktopGeometry.codeWidth - desktopGeometry.inputWidth)).toBeLessThan(2);
   expect(desktopGeometry.inputHeight).toBeGreaterThan(300);
   for (const viewport of [
     { width: 360, height: 800 },
@@ -362,6 +370,7 @@ test("Beginner Guide presents one of 50 practical long-form programs in a focuse
     const layout = await page.evaluate(() => {
       const reference = document.querySelector(".code-card").getBoundingClientRect();
       const typing = document.querySelector(".typing-card").getBoundingClientRect();
+      const codeDisplay = document.querySelector("#question-code").getBoundingClientRect();
       const input = document.querySelector("#typing-input").getBoundingClientRect();
       return {
         documentWidth: document.documentElement.scrollWidth,
@@ -372,6 +381,8 @@ test("Beginner Guide presents one of 50 practical long-form programs in a focuse
         typingLeft: typing.left,
         typingRight: typing.right,
         typingTop: typing.top,
+        codeWidth: codeDisplay.width,
+        inputWidth: input.width,
         inputHeight: input.height,
       };
     });
@@ -380,6 +391,7 @@ test("Beginner Guide presents one of 50 practical long-form programs in a focuse
     expect(layout.referenceRight).toBeLessThanOrEqual(layout.viewportWidth);
     expect(layout.typingLeft).toBeGreaterThanOrEqual(0);
     expect(layout.typingRight).toBeLessThanOrEqual(layout.viewportWidth);
+    expect(Math.abs(layout.codeWidth - layout.inputWidth)).toBeLessThan(2);
     expect(layout.inputHeight).toBeGreaterThan(280);
     if (viewport.width <= 900) {
       expect(layout.typingTop).toBeGreaterThanOrEqual(layout.referenceBottom);
@@ -391,6 +403,10 @@ test("Beginner Guide presents one of 50 practical long-form programs in a focuse
   const wrongAnswer = `${answer.slice(0, -1)}${answer.endsWith("x") ? "y" : "x"}`;
   await page.locator("#typing-input").focus();
   await page.keyboard.insertText(wrongAnswer);
+  await expect(page.locator("#typing-feedback")).toBeHidden();
+  await expect(page.locator("#question-code .correct").first()).toBeVisible();
+  await expect(page.locator("#question-code .incorrect")).toHaveCount(1);
+  await expect(page.locator("#question-code")).toHaveText(answer);
   await page.keyboard.press("Enter");
   await expect(page.locator("#typing-input")).toBeDisabled();
   await expect(page.locator("#feedback-message")).toContainText("오답으로 기록");
