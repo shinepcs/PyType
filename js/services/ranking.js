@@ -141,7 +141,10 @@ function normalizeRankingRow(row) {
   const rank = Number(row.rank);
   const score = Number(row.score);
   const accuracy = Number(row.accuracy);
-  const cpm = Number(row.cpm);
+  // Existing production RPCs returned WPM before the client moved to 타/분.
+  // Accept that response during the database migration, but expose only CPM
+  // to the rest of the application.
+  const cpm = row.cpm === undefined ? Number(row.wpm) * 5 : Number(row.cpm);
   const problemsSolved = Number(row.problems_solved);
   const bestCombo = Number(row.best_combo);
   const survivalMs = Number(row.survival_ms);

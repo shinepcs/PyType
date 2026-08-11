@@ -214,6 +214,21 @@ test("Global and Today call server-side aggregate RPCs and hide identifiers", as
   assert.equal(today.ok, true);
 });
 
+test("legacy WPM RPC rows are converted to 분당 타수 before rendering", async () => {
+  const client = new FakeClient();
+  const legacyRow = rankingRow();
+  delete legacyRow.cpm;
+  legacyRow.wpm = "52.34";
+  client.rpcResult = [legacyRow];
+  const service = new RankingService({ client });
+
+  const response = await service.getGlobalRanking({ limit: 100, contentVersion: "1.0.0" });
+
+  assert.equal(response.ok, true);
+  assert.equal(response.entries[0].cpm, 261.7);
+  assert.equal("wpm" in response.entries[0], false);
+});
+
 test("My Best and My Rank require authenticated RPC and support empty state", async () => {
   const client = new FakeClient();
   const service = new RankingService({ client });
