@@ -388,6 +388,7 @@ button:disabled {
   line-height: 0.85rem;
 }
 
+#screen-game[data-beginner-guide="true"][data-practice-layout="horizontal"] .code-card > header,
 #screen-game[data-beginner-guide="true"][data-practice-layout="horizontal"] .typing-heading {
   min-height: 1.63rem;
 }
