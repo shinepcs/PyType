@@ -182,8 +182,7 @@ button:disabled {
   transform: perspective(120px) rotateX(58deg);
 }
 
-.player-unit,
-.enemy-unit {
+.player-unit {
   position: absolute;
   bottom: 22px;
   display: grid;
@@ -192,12 +191,14 @@ button:disabled {
 }
 
 .player-unit {
-  left: 9%;
+  left: 50%;
   width: 38px;
   height: 38px;
   border: 2px solid var(--cyan);
   border-radius: 50% 50% 42% 42%;
   box-shadow: 0 0 24px rgba(93, 228, 255, 0.28);
+  transform: translateX(-50%);
+  z-index: 3;
 }
 
 .unit-core {
@@ -210,28 +211,73 @@ button:disabled {
 .unit-label {
   position: absolute;
   top: calc(100% + 5px);
+  display: grid;
+  justify-items: center;
+  width: 7rem;
   color: var(--cyan);
   font-family: var(--font-code);
   font-size: 0.55rem;
 }
 
-.enemy-unit {
-  width: 34px;
-  height: 34px;
-  color: var(--red);
-  background: rgba(255, 102, 125, 0.12);
-  border: 1px solid var(--red);
-  transform: rotate(45deg);
+.unit-label small {
+  margin-top: 0.12rem;
+  color: var(--text-soft);
+  font-size: 0.48rem;
+  white-space: nowrap;
 }
 
-.enemy-face {
+.rival-unit {
+  position: absolute;
+  bottom: 24px;
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  color: var(--red);
+  background: rgba(255, 102, 125, 0.14);
+  border: 1px solid var(--red);
+  box-shadow: 0 0 18px rgba(255, 102, 125, 0.13);
+  transform: translateX(-50%) rotate(45deg);
+  z-index: 2;
+}
+
+.rival-unit[data-relation="behind"] {
+  opacity: 0.58;
+  filter: saturate(0.72);
+}
+
+.rival-face {
   font-family: var(--font-code);
-  font-size: 1.1rem;
+  font-size: 1rem;
   transform: rotate(-45deg);
 }
 
-.enemy-one { right: var(--enemy-position, 10%); }
-.enemy-two { right: calc(var(--enemy-position, 10%) + 24%); opacity: 0.55; transform: rotate(45deg) scale(0.75); }
+.rival-unit-label {
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 50%;
+  display: grid;
+  width: 8rem;
+  justify-items: center;
+  color: var(--red);
+  font-family: var(--font-code);
+  font-size: 0.53rem;
+  line-height: 1.2;
+  transform: translateX(-50%) rotate(-45deg);
+}
+
+.rival-unit-label strong {
+  max-width: 11ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rival-unit-label small {
+  color: var(--text-faint);
+  font-size: 0.47rem;
+  white-space: nowrap;
+}
 
 .attack-trace {
   position: absolute;
@@ -247,7 +293,7 @@ button:disabled {
   animation: attack 240ms ease-out;
 }
 
-.battle-lane[data-hit="true"] .enemy-one {
+.battle-lane[data-hit="true"] .rival-unit[data-relation="ahead"] {
   animation: enemy-hit 280ms ease-out;
 }
 
@@ -617,6 +663,134 @@ input[type="range"] {
   font-family: var(--font-code);
 }
 
+.game-online-players {
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  box-shadow: var(--shadow);
+}
+
+.game-online-players header {
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.game-online-players ul {
+  display: grid;
+  gap: 0.42rem;
+  max-height: calc(100vh - 11rem);
+  margin: 0.75rem 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.game-online-players li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.game-online-players li strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-online-players li > span:last-child {
+  grid-column: 2;
+  font-size: 0.62rem;
+}
+
+.overtake-effect {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(93, 228, 255, 0.25), rgba(7, 10, 18, 0.04) 48%, rgba(7, 10, 18, 0));
+}
+
+.overtake-effect[hidden] {
+  display: none;
+}
+
+.overtake-effect[data-active="true"] {
+  animation: overtake-flash 1.05s ease-out both;
+}
+
+.overtake-shockwave {
+  position: absolute;
+  width: 12rem;
+  aspect-ratio: 1;
+  border: 3px solid var(--cyan);
+  border-radius: 50%;
+  box-shadow: 0 0 70px var(--cyan), inset 0 0 40px rgba(93, 228, 255, 0.32);
+}
+
+[data-active="true"] .overtake-shockwave {
+  animation: overtake-shockwave 850ms cubic-bezier(0.16, 0.8, 0.24, 1) both;
+}
+
+.overtake-message {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  min-width: min(31rem, calc(100vw - 3rem));
+  padding: 1.25rem 2rem;
+  background: rgba(7, 10, 18, 0.9);
+  border-block: 2px solid var(--cyan);
+  box-shadow: 0 0 60px rgba(93, 228, 255, 0.35);
+  font-family: var(--font-code);
+  text-transform: uppercase;
+}
+
+[data-active="true"] .overtake-message {
+  animation: overtake-message 1.05s cubic-bezier(0.16, 0.8, 0.24, 1) both;
+}
+
+.overtake-message small {
+  color: var(--cyan);
+  letter-spacing: 0.24em;
+}
+
+.overtake-message strong {
+  max-width: 14ch;
+  overflow: hidden;
+  color: var(--text);
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  line-height: 1.08;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 25px rgba(93, 228, 255, 0.7);
+  white-space: nowrap;
+}
+
+.overtake-message span {
+  color: var(--lime);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+@keyframes overtake-flash {
+  0% { opacity: 0; background-color: rgba(255, 255, 255, 0.5); }
+  10%, 52% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes overtake-shockwave {
+  from { opacity: 1; transform: scale(0.15); }
+  to { opacity: 0; transform: scale(6); }
+}
+
+@keyframes overtake-message {
+  0% { opacity: 0; transform: scale(1.8) skewX(-8deg); }
+  18% { opacity: 1; transform: scale(0.94) skewX(0); }
+  34%, 70% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.06); }
+}
+
 .online-dot {
   width: 0.45rem;
   height: 0.45rem;
@@ -802,8 +976,8 @@ dialog p {
 }
 
 @keyframes enemy-hit {
-  35% { opacity: 0.2; transform: rotate(45deg) scale(1.45); }
-  100% { opacity: 1; transform: rotate(45deg) scale(1); }
+  35% { opacity: 0.2; transform: translateX(-50%) rotate(45deg) scale(1.45); }
+  100% { opacity: 1; transform: translateX(-50%) rotate(45deg) scale(1); }
 }
 
 @media (max-width: 620px) {
@@ -843,25 +1017,31 @@ dialog p {
 @media (prefers-reduced-motion: reduce) {
   .mode-card,
   .player-unit,
-  .enemy-unit,
+  .rival-unit,
   .danger-track span {
     transition: none;
   }
 
   .battle-lane[data-attack="true"] .attack-trace,
-  .battle-lane[data-hit="true"] .enemy-one {
+  .battle-lane[data-hit="true"] .rival-unit,
+  .overtake-effect,
+  .overtake-shockwave,
+  .overtake-message {
     animation: none;
   }
 }
 
 html[data-reduced-motion="true"] .mode-card,
 html[data-reduced-motion="true"] .player-unit,
-html[data-reduced-motion="true"] .enemy-unit,
+html[data-reduced-motion="true"] .rival-unit,
 html[data-reduced-motion="true"] .danger-track span {
   transition: none;
 }
 
 html[data-reduced-motion="true"] .battle-lane[data-attack="true"] .attack-trace,
-html[data-reduced-motion="true"] .battle-lane[data-hit="true"] .enemy-one {
+html[data-reduced-motion="true"] .battle-lane[data-hit="true"] .rival-unit,
+html[data-reduced-motion="true"] .overtake-effect,
+html[data-reduced-motion="true"] .overtake-shockwave,
+html[data-reduced-motion="true"] .overtake-message {
   animation: none;
 }

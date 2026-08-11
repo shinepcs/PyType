@@ -23,6 +23,13 @@ import { renderRankingState, selectRankingTab } from "./ui/render-ranking.js";
 import { renderRankingSubmission, renderResult } from "./ui/render-results.js";
 import { renderPracticeRivals } from "./ui/render-practice-rivals.js";
 import { renderOnlinePlayers } from "./ui/render-online-players.js";
+import {
+  findOvertakenCompetitors,
+  mergeCompetitionPlayers,
+  renderBattleCompetition,
+  resetOvertakeEffect,
+  triggerOvertakeEffect,
+} from "./ui/render-competition.js";
 import { fillQuestionForm, renderQuestionSourceOptions, updateQuestionFormLevel } from "./ui/render-question-editor.js";
 import { createScreenRouter } from "./ui/router.js";
 import { createSeededRandom } from "./utils/random.js";
@@ -172,6 +179,7 @@ class PythonTypingSurvivalApp {
     this.sharedQuestions = [];
     this.sharedContentRequest = null;
     this.presenceTimer = null;
+    this.latestOnlinePlayers = [];
   }
 
   async initialize() {
@@ -459,8 +467,9 @@ class PythonTypingSurvivalApp {
       problemToken: 0,
       pendingNextAt: null,
       finishHandled: false,
-      rivals: { kind: mode === GAME_MODES.PRACTICE ? "loading" : "hidden", entries: [] },
+      rivals: { kind: "loading", entries: [] },
       lastRivalScore: null,
+      lastCompetitionScore: 0,
       level2Prerequisites: { ...(this.storageData.progress.level2Prerequisites ?? {}) },
     };
     this.lastSessionSetup = { mode, options: { ...options } };
@@ -468,7 +477,7 @@ class PythonTypingSurvivalApp {
     this.prepareGameScreen(mode, options);
     this.router.show("game", { focus: false });
     this.frameId = requestAnimationFrame((time) => this.frame(time));
-    if (mode === GAME_MODES.PRACTICE) this.loadPracticeRivals(game.sessionId);
+    this.loadGameRivals(game.sessionId);
   }
 
   prepareGameScreen(mode, options = {}) {
@@ -489,6 +498,8 @@ class PythonTypingSurvivalApp {
     $("#typing-input").value = "";
     $("#feedback-message").textContent = "";
     renderTypingFeedback("", "");
+    renderBattleCompetition({ competitors: [], score: 0 });
+    resetOvertakeEffect();
     renderPracticeRivals({ kind: mode === GAME_MODES.PRACTICE ? "loading" : "hidden", score: 0 });
     this.renderActiveHud();
   }
@@ -534,14 +545,31 @@ class PythonTypingSurvivalApp {
 
   renderActiveHud(snapshot = this.activeSession?.game.snapshot(performance.now())) {
     if (!snapshot || !this.activeSession) return;
+    const currentScore = Number(snapshot.rawScore ?? 0);
     renderHud({
       ...snapshot,
       maxProblems: this.activeSession.game.maxProblems,
       remainingMs: snapshot.remainingMs,
     }, { formatTime: formatClock });
+    const competitors = mergeCompetitionPlayers({
+      rivals: this.activeSession.rivals.entries,
+      onlinePlayers: this.latestOnlinePlayers,
+      playerName: this.storageData?.profile?.nickname ?? "",
+    });
+    const overtaken = findOvertakenCompetitors(
+      competitors,
+      this.activeSession.lastCompetitionScore,
+      currentScore,
+    );
+    renderBattleCompetition({ competitors, score: currentScore });
+    if (triggerOvertakeEffect(overtaken)) {
+      const names = overtaken.map((entry) => entry.playerName);
+      announce(`${names.join(", ")} 추월 성공`, { clearAfterMs: 1_200 });
+    }
+    this.activeSession.lastCompetitionScore = currentScore;
     if (this.activeSession.mode === GAME_MODES.PRACTICE
-        && this.activeSession.lastRivalScore !== Number(snapshot.rawScore ?? 0)) {
-      this.activeSession.lastRivalScore = Number(snapshot.rawScore ?? 0);
+        && this.activeSession.lastRivalScore !== currentScore) {
+      this.activeSession.lastRivalScore = currentScore;
       renderPracticeRivals({
         ...this.activeSession.rivals,
         score: this.activeSession.lastRivalScore,
@@ -753,6 +781,7 @@ class PythonTypingSurvivalApp {
     if (!session || session.finishHandled) return;
     session.finishHandled = true;
     this.cancelFrame();
+    resetOvertakeEffect();
     $("#ready-overlay").hidden = true;
     $("#typing-input").disabled = true;
     if ($("#pause-dialog").open) $("#pause-dialog").close();
@@ -893,17 +922,17 @@ class PythonTypingSurvivalApp {
     });
   }
 
-  async loadPracticeRivals(sessionId) {
+  async loadGameRivals(sessionId) {
     const result = await this.ranking.getNearbyRanking({
       contentVersion: this.getCompetitiveContentVersion(),
       radius: 5,
     });
     const session = this.activeSession;
-    if (!session || session.game.sessionId !== sessionId || session.mode !== GAME_MODES.PRACTICE) return;
+    if (!session || session.game.sessionId !== sessionId) return;
     session.rivals = result.ok
       ? { kind: result.entries.length > 0 ? "ready" : "empty", entries: result.entries }
       : { kind: result.status === "offline" ? "offline" : "error", entries: [] };
-    session.lastRivalScore = null;
+    if (session.mode === GAME_MODES.PRACTICE) session.lastRivalScore = null;
     this.renderActiveHud();
   }
 
@@ -1014,9 +1043,12 @@ class PythonTypingSurvivalApp {
       contentVersion: this.getCompetitiveContentVersion(),
       limit: 50,
     });
-    renderOnlinePlayers(result.ok
+    const viewState = result.ok
       ? { kind: result.players.length > 0 ? "ready" : "empty", players: result.players }
-      : { kind: result.status === "offline" ? "offline" : "error", players: [] });
+      : { kind: result.status === "offline" ? "offline" : "error", players: [] };
+    this.latestOnlinePlayers = result.ok ? result.players : [];
+    renderOnlinePlayers(viewState);
+    if (this.activeSession) this.renderActiveHud();
   }
 
   openProgress() {

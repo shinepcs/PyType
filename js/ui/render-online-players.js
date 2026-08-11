@@ -1,7 +1,7 @@
-export function renderOnlinePlayers(state, { root = document } = {}) {
-  const list = root.querySelector("#online-player-list");
-  const status = root.querySelector("#online-player-state");
-  const count = root.querySelector("#online-player-count");
+function renderPanel(panel, state) {
+  const list = panel.querySelector("[data-online-list], #online-player-list");
+  const status = panel.querySelector("[data-online-state], #online-player-state");
+  const count = panel.querySelector("[data-online-count], #online-player-count");
   if (!list || !status || !count) return;
   list.replaceChildren();
   const messages = {
@@ -30,4 +30,10 @@ export function renderOnlinePlayers(state, { root = document } = {}) {
     item.append(marker, name, score);
     list.append(item);
   }
+}
+
+export function renderOnlinePlayers(state, { root = document } = {}) {
+  const panels = [...root.querySelectorAll("[data-online-players]")];
+  if (panels.length === 0 && root.matches?.("[data-online-players]")) panels.push(root);
+  for (const panel of panels) renderPanel(panel, state);
 }

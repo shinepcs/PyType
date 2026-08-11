@@ -335,6 +335,49 @@ test("Python operators render as separate characters without font ligatures", as
   }
 });
 
+test("desktop game shows rivals around YOU, online players on the right, and a named overtake effect", async ({ page }) => {
+  await preparePage(page, { nickname: "RaceQA" });
+  await page.locator("#start-beginner").click();
+  await page.clock.runFor(3_050);
+  await expect(page.locator("#game-online-players")).toBeVisible();
+
+  const competition = await page.evaluate(async () => {
+    const moduleUrl = new URL("./js/ui/render-competition.js", document.baseURI).href;
+    const { renderBattleCompetition, triggerOvertakeEffect } = await import(moduleUrl);
+    renderBattleCompetition({
+      score: 500,
+      competitors: [
+        { playerName: "BehindQA", score: 300 },
+        { playerName: "AheadQA", score: 700 },
+      ],
+    });
+    triggerOvertakeEffect([{ playerName: "BehindQA", score: 300 }]);
+    const main = document.querySelector(".game-main-column").getBoundingClientRect();
+    const online = document.querySelector("#game-online-players").getBoundingClientRect();
+    const you = document.querySelector(".player-unit").getBoundingClientRect();
+    const behind = document.querySelector('.rival-unit[data-relation="behind"]').getBoundingClientRect();
+    const ahead = document.querySelector('.rival-unit[data-relation="ahead"]').getBoundingClientRect();
+    return {
+      behindName: document.querySelector('.rival-unit[data-relation="behind"] strong').textContent,
+      aheadName: document.querySelector('.rival-unit[data-relation="ahead"] strong').textContent,
+      effectVisible: !document.querySelector("#overtake-effect").hidden,
+      effectName: document.querySelector("#overtake-player").textContent,
+      mainRight: main.right,
+      onlineLeft: online.left,
+      youLeft: you.left,
+      behindLeft: behind.left,
+      aheadLeft: ahead.left,
+    };
+  });
+  expect(competition.behindName).toBe("BehindQA");
+  expect(competition.aheadName).toBe("AheadQA");
+  expect(competition.effectVisible).toBe(true);
+  expect(competition.effectName).toBe("BehindQA");
+  expect(competition.onlineLeft).toBeGreaterThanOrEqual(competition.mainRight);
+  expect(competition.behindLeft).toBeLessThan(competition.youLeft);
+  expect(competition.aheadLeft).toBeGreaterThan(competition.youLeft);
+});
+
 test("360px, 768px and 1280px layouts keep code and input inside the viewport", async ({ page }) => {
   await preparePage(page, { nickname: "LongPlayer12" });
   await page.locator("#start-quick").click();

@@ -79,6 +79,7 @@ export function renderHud(state, { root = document, formatTime } = {}) {
   const remainingMs = Math.max(0, state.remainingMs ?? 0);
   setText(byId("hud-time", root), untimed ? "∞" : formatTime ? formatTime(remainingMs) : String(Math.ceil(remainingMs / 1000)));
   setText(byId("hud-score", root), Number(state.rawScore ?? state.score ?? 0).toLocaleString());
+  setText(byId("battle-player-score", root), `${Number(state.rawScore ?? state.score ?? 0).toLocaleString()} PTS`);
   setText(byId("hud-combo", root), state.combo ?? 0);
   const ordinal = state.problemOrdinal ?? ((state.solvedCount ?? 0) + 1);
   setText(byId("hud-problem", root), `${Math.min(Math.max(1, ordinal), state.maxProblems ?? 40)} / ${state.maxProblems ?? 40}`);
@@ -90,8 +91,6 @@ export function renderHud(state, { root = document, formatTime } = {}) {
   track?.setAttribute("aria-valuenow", String(Math.round(danger)));
   const fill = byId("danger-fill", root);
   if (fill) fill.style.width = `${danger}%`;
-  const lane = byId("battle-lane", root);
-  if (lane) lane.style.setProperty("--enemy-position", `${Math.max(7, 72 - danger * 0.62)}%`);
 }
 
 export function triggerAttack({ root = document, clean = true } = {}) {

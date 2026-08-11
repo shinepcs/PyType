@@ -309,6 +309,23 @@
   margin: 1.25rem 0 0.75rem;
 }
 
+.game-playfield {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16.5rem;
+  gap: 1rem;
+  align-items: start;
+}
+
+.game-main-column {
+  min-width: 0;
+}
+
+.game-online-players {
+  grid-row: 1;
+  grid-column: 2;
+  margin-top: 1.25rem;
+}
+
 .danger-label {
   display: flex;
   justify-content: space-between;
@@ -487,6 +504,14 @@
 
   .battle-lane {
     height: 76px;
+  }
+
+  .game-playfield {
+    grid-template-columns: 1fr;
+  }
+
+  .game-online-players {
+    display: none;
   }
 }
 

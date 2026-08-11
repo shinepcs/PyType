@@ -103,7 +103,7 @@
             <button id="open-progress" type="button">PROGRESS</button>
             <button id="open-settings" type="button">SETTINGS</button>
           </nav>
-          <aside class="online-players" aria-labelledby="online-players-title">
+          <aside class="online-players" data-online-players aria-labelledby="online-players-title">
             <header><h2 id="online-players-title">ONLINE PLAYERS</h2><span id="online-player-count">0 ONLINE</span></header>
             <p id="online-player-state" role="status">접속자를 확인하는 중…</p>
             <ul id="online-player-list"></ul>
@@ -148,6 +148,8 @@
             </div>
           </div>
 
+          <div class="game-playfield">
+          <div class="game-main-column">
           <div class="danger-panel">
             <div class="danger-label"><span>DANGER</span><strong id="danger-value">20%</strong></div>
             <div class="danger-track" role="progressbar" aria-label="위험도" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20">
@@ -157,9 +159,8 @@
 
           <div class="battle-lane" id="battle-lane" aria-hidden="true">
             <div class="grid-horizon"></div>
-            <div class="player-unit"><span class="unit-core"></span><span class="unit-label">YOU</span></div>
-            <div class="enemy-unit enemy-one"><span class="enemy-face">×</span></div>
-            <div class="enemy-unit enemy-two"><span class="enemy-face">×</span></div>
+            <div id="battle-competitors"></div>
+            <div class="player-unit"><span class="unit-core"></span><span class="unit-label">YOU <small id="battle-player-score">0 PTS</small></span></div>
             <div class="attack-trace" id="attack-trace"></div>
           </div>
 
@@ -215,6 +216,20 @@
                 <span class="feedback-message" id="feedback-message" role="status" aria-live="polite"></span>
               </div>
             </section>
+          </div>
+          </div>
+
+          <aside class="online-players game-online-players" id="game-online-players" data-online-players aria-labelledby="game-online-players-title">
+            <header><h2 id="game-online-players-title">PLAYING NOW</h2><span data-online-count>0 ONLINE</span></header>
+            <p data-online-state role="status">접속자를 확인하는 중…</p>
+            <ul data-online-list></ul>
+            <small>현재 접속 중 · QUICK 최고 점수</small>
+          </aside>
+          </div>
+
+          <div class="overtake-effect" id="overtake-effect" role="status" aria-live="assertive" hidden>
+            <div class="overtake-shockwave"></div>
+            <div class="overtake-message"><small>RIVAL PASSED</small><strong id="overtake-player"></strong><span>추월 성공!</span></div>
           </div>
         </section>
 
