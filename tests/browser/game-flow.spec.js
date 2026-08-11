@@ -580,6 +580,7 @@ test("desktop game shows rivals around YOU, online players on the right, and a n
     const rivalUnit = document.querySelector('.rival-unit[data-relation="behind"]');
     const rivalLabel = rivalName.getBoundingClientRect();
     const rivalShape = rivalUnit.getBoundingClientRect();
+    const lane = document.querySelector("#battle-lane").getBoundingClientRect();
     return {
       behindName: document.querySelector('.rival-unit[data-relation="behind"] strong').textContent,
       aheadName: document.querySelector('.rival-unit[data-relation="ahead"] strong').textContent,
@@ -592,6 +593,7 @@ test("desktop game shows rivals around YOU, online players on the right, and a n
       aheadLeft: ahead.left,
       rivalMovedOnSameNode: caughtUpRival === movingRival && parseFloat(caughtUpRival.style.left) < earlyLeft,
       rivalLabelCenterDelta: Math.abs((rivalLabel.left + rivalLabel.width / 2) - (rivalShape.left + rivalShape.width / 2)),
+      rivalLabelFitsLane: rivalLabel.top >= lane.top && rivalLabel.bottom <= lane.bottom,
       rivalNameFontRatio: parseFloat(getComputedStyle(rivalName).fontSize)
         / parseFloat(getComputedStyle(document.documentElement).fontSize),
     };
@@ -605,6 +607,7 @@ test("desktop game shows rivals around YOU, online players on the right, and a n
   expect(competition.aheadLeft).toBeGreaterThan(competition.youLeft);
   expect(competition.rivalMovedOnSameNode).toBe(true);
   expect(competition.rivalLabelCenterDelta).toBeLessThan(2);
+  expect(competition.rivalLabelFitsLane).toBe(true);
   expect(competition.rivalNameFontRatio).toBeCloseTo(1.59, 2);
 });
 

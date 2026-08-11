@@ -210,7 +210,7 @@ button:disabled {
 
 .unit-label {
   position: absolute;
-  top: calc(100% + 5px);
+  bottom: calc(100% + 5px);
   display: grid;
   justify-items: center;
   width: 7rem;
@@ -265,7 +265,7 @@ button:disabled {
 
 .rival-unit-label {
   position: absolute;
-  top: calc(100% + 9px);
+  bottom: calc(100% + 9px);
   left: 50%;
   display: grid;
   width: 8rem;
