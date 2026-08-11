@@ -316,6 +316,25 @@ test("Beginner Guide types a Korean explanation as an executable Python comment"
   await expect(page.locator("#skip-button")).toBeVisible();
 });
 
+test("Python operators render as separate characters without font ligatures", async ({ page }) => {
+  await preparePage(page, { nickname: "LigatureQA" });
+  await page.locator("#start-beginner").click();
+  await page.clock.runFor(3_050);
+
+  for (const selector of ["#question-code", "#typing-feedback", "#typing-input"]) {
+    const fontStyle = await page.locator(selector).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        ligatures: style.fontVariantLigatures,
+        features: style.fontFeatureSettings,
+      };
+    });
+    expect(fontStyle.ligatures).toBe("none");
+    expect(fontStyle.features).toContain('"liga" 0');
+    expect(fontStyle.features).toContain('"calt" 0');
+  }
+});
+
 test("360px, 768px and 1280px layouts keep code and input inside the viewport", async ({ page }) => {
   await preparePage(page, { nickname: "LongPlayer12" });
   await page.locator("#start-quick").click();
