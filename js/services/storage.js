@@ -118,7 +118,7 @@ export function createDefaultStorageData(now = () => new Date()) {
       sound: false,
       reducedMotion: false,
       fontScale: 1,
-      practiceLayout: "horizontal",
+      practiceLayout: "vertical",
     },
     progress: {
       skills: {},
@@ -434,7 +434,7 @@ export function validateStorageData(input) {
         sound: input.settings.sound,
         reducedMotion: input.settings.reducedMotion,
         fontScale: input.settings.fontScale,
-        practiceLayout: input.settings.practiceLayout ?? "horizontal",
+        practiceLayout: input.settings.practiceLayout ?? "vertical",
       },
       progress: { skills, level2Prerequisites },
       history,

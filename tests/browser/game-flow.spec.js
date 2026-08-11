@@ -17,14 +17,14 @@ test.afterEach(async ({ page }) => {
   expect(browserErrors.get(page) ?? []).toEqual([]);
 });
 
-async function preparePage(page, { nickname = null, level2Ready = false } = {}) {
+async function preparePage(page, { nickname = null, level2Ready = false, history = [] } = {}) {
   await page.clock.install({ time: new Date("2026-08-11T06:00:00.000Z") });
   await page.route("https://*.supabase.co/**", (route) => route.fulfill({
     status: 200,
     contentType: "application/json",
     body: JSON.stringify({ message: "ranking unavailable in offline browser test" }),
   }));
-  await page.addInitScript(({ seed, sessionId, nicknameValue }) => {
+  await page.addInitScript(({ seed, sessionId, nicknameValue, historyValue }) => {
     const ids = [seed, sessionId, "33333333-3333-4333-8333-333333333333"];
     let index = 0;
     Object.defineProperty(window.crypto, "randomUUID", {
@@ -37,12 +37,12 @@ async function preparePage(page, { nickname = null, level2Ready = false } = {}) 
         profile: { nickname: nicknameValue, createdAt: "2026-08-11T06:00:00.000Z" },
         settings: { sound: false, reducedMotion: false, fontScale: 1 },
         progress: { skills: {} },
-        history: [],
+        history: historyValue,
         personalBest: { quick: null, daily: null },
         pendingRankingSubmissions: [],
       }));
     }
-  }, { seed: SESSION_SEED, sessionId: SESSION_ID, nicknameValue: nickname });
+  }, { seed: SESSION_SEED, sessionId: SESSION_ID, nicknameValue: nickname, historyValue: history });
   await page.goto("./");
   if (level2Ready) {
     await page.evaluate(async () => {
@@ -204,6 +204,8 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
   await page.clock.runFor(500);
   await expect(page.locator("#result-title")).toHaveText("훈련 완료");
   await expect(page.locator("#result-solved")).not.toHaveText("0");
+  await expect(page.locator("#result-progress")).toHaveAttribute("data-trend", "first");
+  await expect(page.locator("#result-progress-summary")).toContainText("첫 기록");
   await expect(page.locator("#ranking-submit-label")).toContainText(/오프라인|등록 실패/);
   await expect(page.locator("#retry-ranking")).toBeVisible();
 
@@ -220,7 +222,21 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
 });
 
 test("paste and IME remain scoped to game input and danger reaches game over", async ({ page }) => {
-  await preparePage(page, { nickname: "SafePlayer" });
+  await preparePage(page, {
+    nickname: "SafePlayer",
+    history: [{
+      sessionId: "44444444-4444-4444-8444-444444444444",
+      gameMode: "quick",
+      sessionVariant: "quick",
+      endedNormally: true,
+      score: 500,
+      accuracy: 95,
+      wpm: 25,
+      problemsSolved: 10,
+      averageProblemMs: 8_000,
+      completedAt: "2026-08-10T06:00:00.000Z",
+    }],
+  });
   await page.locator("#start-quick").click();
   await page.clock.runFor(3_050);
   await expect(page.locator("#typing-input")).toBeEnabled();
@@ -243,6 +259,9 @@ test("paste and IME remain scoped to game input and danger reaches game over", a
   await page.clock.fastForward(60_000);
   await expect(page.locator("#screen-result")).toBeVisible();
   await expect(page.locator("#result-title")).toHaveText("위험도 한계 도달");
+  await expect(page.locator("#result-progress")).toHaveAttribute("data-trend", "declined");
+  await expect(page.locator("#result-progress-summary")).toContainText("직전 기록보다");
+  await expect(page.locator("#result-comparison-grid .comparison-card").first()).toContainText("이전 500");
 });
 
 test("Practice skip updates mastery, Daily repeats its seed, and reduced motion persists", async ({ page }) => {
@@ -345,32 +364,8 @@ test("Beginner Guide presents one of 50 practical long-form programs in a focuse
   await expect(page.locator("#game-online-players")).toBeHidden();
   await expect(page.locator("#typing-feedback")).toHaveText("");
   await expect(page.locator("#skip-button")).toBeVisible();
-  const desktopGeometry = await page.evaluate(() => {
-    const reference = document.querySelector(".code-card").getBoundingClientRect();
-    const typing = document.querySelector(".typing-card").getBoundingClientRect();
-    const codeDisplay = document.querySelector("#question-code").getBoundingClientRect();
-    const input = document.querySelector("#typing-input").getBoundingClientRect();
-    return {
-      referenceRight: reference.right,
-      typingLeft: typing.left,
-      codeWidth: codeDisplay.width,
-      inputWidth: input.width,
-      inputHeight: input.height,
-      referenceFontSize: getComputedStyle(document.querySelector("#question-code code")).fontSize,
-      inputFontSize: getComputedStyle(document.querySelector("#typing-input")).fontSize,
-    };
-  });
-  expect(desktopGeometry.typingLeft).toBeGreaterThanOrEqual(desktopGeometry.referenceRight);
-  expect(Math.abs(desktopGeometry.codeWidth - desktopGeometry.inputWidth)).toBeLessThan(2);
-  expect(desktopGeometry.inputHeight).toBeGreaterThan(300);
-  expect(desktopGeometry.referenceFontSize).toBe(desktopGeometry.inputFontSize);
-
-  await page.locator("#practice-layout-vertical").click();
   await expect(page.locator("#screen-game")).toHaveAttribute("data-practice-layout", "vertical");
   await expect(page.locator("#practice-layout-vertical")).toHaveAttribute("aria-pressed", "true");
-  expect(await page.evaluate(() => (
-    JSON.parse(localStorage.getItem("pythonTypingSurvival:v1")).settings.practiceLayout
-  ))).toBe("vertical");
   const verticalGeometry = await page.evaluate(() => {
     const referenceCard = document.querySelector(".code-card").getBoundingClientRect();
     const typingCard = document.querySelector(".typing-card").getBoundingClientRect();
@@ -462,17 +457,22 @@ test("Beginner Guide presents one of 50 practical long-form programs in a focuse
   await expect(page.locator("#typing-input")).toHaveValue("");
 
   await page.locator("#practice-layout-horizontal").click();
+  expect(await page.evaluate(() => (
+    JSON.parse(localStorage.getItem("pythonTypingSurvival:v1")).settings.practiceLayout
+  ))).toBe("horizontal");
   for (const viewport of [
     { width: 360, height: 800 },
     { width: 768, height: 900 },
     { width: 1280, height: 900 },
+    { width: 1815, height: 1020 },
   ]) {
     await page.setViewportSize(viewport);
     const layout = await page.evaluate(() => {
       const reference = document.querySelector(".code-card").getBoundingClientRect();
       const typing = document.querySelector(".typing-card").getBoundingClientRect();
       const codeDisplay = document.querySelector("#question-code").getBoundingClientRect();
-      const input = document.querySelector("#typing-input").getBoundingClientRect();
+      const inputElement = document.querySelector("#typing-input");
+      const input = inputElement.getBoundingClientRect();
       return {
         documentWidth: document.documentElement.scrollWidth,
         viewportWidth: innerWidth,
@@ -485,6 +485,10 @@ test("Beginner Guide presents one of 50 practical long-form programs in a focuse
         codeWidth: codeDisplay.width,
         inputWidth: input.width,
         inputHeight: input.height,
+        codeStartY: codeDisplay.top,
+        inputStartY: input.top,
+        referenceFontSize: getComputedStyle(document.querySelector("#question-code code")).fontSize,
+        inputFontSize: getComputedStyle(inputElement).fontSize,
       };
     });
     expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth);
@@ -494,10 +498,15 @@ test("Beginner Guide presents one of 50 practical long-form programs in a focuse
     expect(layout.typingRight).toBeLessThanOrEqual(layout.viewportWidth);
     expect(Math.abs(layout.codeWidth - layout.inputWidth)).toBeLessThan(2);
     expect(layout.inputHeight).toBeGreaterThan(280);
+    expect(layout.referenceFontSize).toBe(layout.inputFontSize);
     if (viewport.width <= 900) {
       expect(layout.typingTop).toBeGreaterThanOrEqual(layout.referenceBottom);
     } else {
       expect(layout.typingLeft).toBeGreaterThanOrEqual(layout.referenceRight);
+      expect(
+        Math.abs(layout.codeStartY - layout.inputStartY),
+        `원문과 입력 첫 줄의 Y축 시작점이 달라졌습니다: ${JSON.stringify(layout)}`,
+      ).toBeLessThan(1);
     }
   }
   const answer = await currentAnswer(page);

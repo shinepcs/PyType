@@ -688,6 +688,9 @@ PLAYER: nickname
 
 - 9.3절의 지표
 - `New Personal Best` 표시
+- 같은 모드의 직전 완료 기록과 최근 5회 평균을 기준으로 `Score`, `Accuracy`, `WPM`, 해결 문제 수, 문제당 평균 소요시간의 변화량 표시
+- `Practice`, `Sample Logic`, `Beginner Guide` 및 서로 다른 Practice 문법 선택은 별도 비교 그룹으로 유지
+- 비교할 이전 기록이 없으면 첫 기록임을 안내하고 다음 완료부터 변화량 표시
 - 온라인 제출 중, 성공, 실패, 재시도 상태
 - `Global Rank` 또는 `Unranked`
 - `Play Again`, `Ranking`, `Home`

@@ -353,6 +353,10 @@ button:disabled {
   font-size: 0.8rem;
 }
 
+.typing-alignment-spacer {
+  display: none;
+}
+
 .code-display,
 .typing-feedback,
 .output-panel pre,
@@ -376,6 +380,21 @@ button:disabled {
 #screen-game[data-beginner-guide="true"] .code-card,
 #screen-game[data-beginner-guide="true"] .typing-card {
   min-height: 31rem;
+}
+
+#screen-game[data-beginner-guide="true"] .level-badge,
+#screen-game[data-beginner-guide="true"] .skill-badge,
+#screen-game[data-beginner-guide="true"] .target-time {
+  line-height: 0.85rem;
+}
+
+#screen-game[data-beginner-guide="true"][data-practice-layout="horizontal"] .typing-heading {
+  min-height: 1.63rem;
+}
+
+#screen-game[data-beginner-guide="true"][data-practice-layout="horizontal"] .typing-alignment-spacer {
+  display: block;
+  visibility: hidden;
 }
 
 .practice-layout-toggle {
@@ -512,6 +531,10 @@ button:disabled {
 }
 
 @media (max-width: 900px) {
+  #screen-game[data-beginner-guide="true"] .typing-alignment-spacer {
+    display: none;
+  }
+
   #screen-game[data-beginner-guide="true"] .problem-layout {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -694,6 +717,71 @@ button:disabled {
   font-family: var(--font-code);
   font-size: 0.68rem;
   font-weight: 900;
+}
+
+.trend-badge {
+  flex: 0 0 auto;
+  padding: 0.4rem 0.6rem;
+  color: var(--text-soft);
+  background: var(--surface-strong);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-family: var(--font-code);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.result-progress[data-trend="improved"] .trend-badge,
+.comparison-card[data-direction="improved"] strong {
+  color: var(--lime);
+}
+
+.result-progress[data-trend="declined"] .trend-badge,
+.comparison-card[data-direction="declined"] strong {
+  color: var(--red);
+}
+
+.result-progress[data-trend="mixed"] .trend-badge {
+  color: var(--amber);
+}
+
+.result-progress[data-trend="steady"] .trend-badge {
+  color: var(--cyan);
+}
+
+.comparison-card {
+  display: grid;
+  min-width: 0;
+  padding: 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.comparison-card small {
+  overflow: hidden;
+  color: var(--text-faint);
+  font-family: var(--font-code);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comparison-card strong {
+  margin: 0.35rem 0 0.45rem;
+  font-family: var(--font-code);
+  font-size: clamp(1.15rem, 3vw, 1.5rem);
+}
+
+.comparison-card span {
+  overflow: hidden;
+  color: var(--text-soft);
+  font-size: 0.68rem;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .weak-skills h2 {

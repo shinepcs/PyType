@@ -73,14 +73,17 @@ export function renderQuestion(question, { root = document, timed = true } = {})
     byId("question-target", root),
     isFill && timed ? "TIME PAUSED · +3 / -2" : isFill ? "TIME LIMIT OFF" : `TARGET ${question.targetSeconds}s`,
   );
-  setText(
-    byId("question-label", root),
-    isFill
-      ? "코드와 OUTPUT을 보고 빈칸의 답을 입력하세요."
-      : isBeginnerGuide
-        ? `실무 예제 · ${question.guideTitle} — 참조 코드를 공백과 줄바꿈까지 그대로 입력하세요.`
-        : "보이는 코드를 공백과 줄바꿈까지 그대로 입력하세요.",
-  );
+  const instruction = isFill
+    ? "코드와 OUTPUT을 보고 빈칸의 답을 입력하세요."
+    : isBeginnerGuide
+      ? `실무 예제 · ${question.guideTitle} — 참조 코드를 공백과 줄바꿈까지 그대로 입력하세요.`
+      : "보이는 코드를 공백과 줄바꿈까지 그대로 입력하세요.";
+  setText(byId("question-label", root), instruction);
+  const typingAlignmentSpacer = byId("typing-alignment-spacer", root);
+  if (typingAlignmentSpacer) {
+    typingAlignmentSpacer.hidden = !isBeginnerGuide;
+    setText(typingAlignmentSpacer, isBeginnerGuide ? instruction : "");
+  }
   const hint = byId("question-hint", root);
   if (hint) {
     hint.hidden = !isFill;

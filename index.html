@@ -141,8 +141,8 @@
             </div>
             <div class="game-actions">
               <div class="practice-layout-toggle" id="practice-layout-toggle" role="group" aria-label="타이핑 연습 레이아웃" hidden>
-                <button id="practice-layout-horizontal" type="button" aria-pressed="true">가로</button>
-                <button id="practice-layout-vertical" type="button" aria-pressed="false">세로</button>
+                <button id="practice-layout-horizontal" type="button" aria-pressed="false">가로</button>
+                <button id="practice-layout-vertical" type="button" aria-pressed="true">세로</button>
               </div>
               <button class="secondary-button" id="skip-button" type="button" hidden>SKIP</button>
               <button class="icon-button" id="pause-button" type="button" aria-label="게임 일시정지">Ⅱ</button>
@@ -201,6 +201,7 @@
                 <h2 id="typing-title">TYPE PYTHON</h2>
                 <span id="typing-progress">0 / 0</span>
               </div>
+              <p class="question-instruction typing-alignment-spacer" id="typing-alignment-spacer" aria-hidden="true" hidden></p>
               <div class="typing-workspace">
                 <div class="typing-input-column">
                   <pre class="typing-feedback" id="typing-feedback" aria-hidden="true"></pre>
@@ -257,6 +258,18 @@
             <div><small>SURVIVAL</small><strong id="result-time">00:00</strong></div>
             <div><small>CORRECT KEYS</small><strong id="result-keys">0</strong></div>
           </div>
+          <section class="result-progress" id="result-progress" aria-labelledby="result-progress-title">
+            <header>
+              <div>
+                <p class="eyebrow" id="result-progress-mode">SAME MODE PROGRESS</p>
+                <h2 id="result-progress-title">이전보다 나아졌나요?</h2>
+              </div>
+              <span class="trend-badge" id="result-trend-badge">FIRST RECORD</span>
+            </header>
+            <p id="result-progress-summary">이 모드의 첫 기록입니다. 다음 플레이부터 변화량을 보여드립니다.</p>
+            <div class="comparison-grid" id="result-comparison-grid"></div>
+            <p class="comparison-note" id="result-comparison-note">같은 모드의 완료 기록만 비교합니다.</p>
+          </section>
           <section class="weak-skills" aria-labelledby="weak-title">
             <h2 id="weak-title">다시 연습할 문법</h2>
             <div id="weak-skill-list"></div>

@@ -4,6 +4,11 @@ import { loadQuestionRepository } from "./content/question-repository.js";
 import { GameState } from "./core/game-state.js";
 import { createEmptySkillMastery, getWeakSkills, updateSkillMastery } from "./core/mastery.js";
 import { QuestionSelector } from "./core/question-selector.js";
+import {
+  buildSessionStatistics,
+  calculateAverageProblemMs,
+  createSessionVariant,
+} from "./core/session-statistics.js";
 import { createLevel2PrerequisiteQuestion, level2PrerequisiteKey, recordLevel2Prerequisite } from "./core/level2-progression.js";
 import {
   createDailySeed,
@@ -316,7 +321,7 @@ class PythonTypingSurvivalApp {
   }
 
   applyPracticeLayout(layout) {
-    const selected = layout === "vertical" ? "vertical" : "horizontal";
+    const selected = layout === "horizontal" ? "horizontal" : "vertical";
     $("#screen-game").dataset.practiceLayout = selected;
     $("#practice-layout-horizontal").setAttribute("aria-pressed", String(selected === "horizontal"));
     $("#practice-layout-vertical").setAttribute("aria-pressed", String(selected === "vertical"));
@@ -324,7 +329,7 @@ class PythonTypingSurvivalApp {
   }
 
   setPracticeLayout(layout) {
-    const selected = layout === "vertical" ? "vertical" : "horizontal";
+    const selected = layout === "horizontal" ? "horizontal" : "vertical";
     const result = this.storage.setSettings({ practiceLayout: selected });
     if (!result.ok) return;
     this.storageData = this.storage.read();
@@ -867,9 +872,12 @@ class PythonTypingSurvivalApp {
     const record = {
       ...result,
       playerName: before.profile.nickname,
+      sessionVariant: createSessionVariant(result.gameMode, session.options),
+      averageProblemMs: calculateAverageProblemMs(result.problemResults),
       weakSkills,
       isPersonalBest,
     };
+    const sessionStatistics = buildSessionStatistics(record, before.history);
 
     const saved = this.storage.update((state) => {
       state.progress.skills = updatedSkills;
@@ -886,7 +894,7 @@ class PythonTypingSurvivalApp {
       this.router.show("home");
       return;
     }
-    renderResult(record, { formatTime: formatElapsed });
+    renderResult(record, { formatTime: formatElapsed, statistics: sessionStatistics });
     renderRankingSubmission({ kind: result.gameMode === GAME_MODES.QUICK ? "submitting" : "local" });
     this.router.show("result");
     if (isRankingPayloadEligible(record)) {
