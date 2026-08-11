@@ -159,16 +159,25 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
     await enterAnswer(page, answer);
     await expect(page.locator("#typing-input")).toBeDisabled();
     if (solved === 0) {
-      await expect.poll(async () => Number(await page.locator("#hud-kps").textContent())).toBeGreaterThan(0);
+      await expect(page.locator(".typing-speed small")).toHaveText("WPM");
+      await expect.poll(async () => Number(await page.locator("#hud-wpm").textContent())).toBeGreaterThan(0);
       const speedDisplay = await page.evaluate(() => {
         const input = document.querySelector("#typing-input").getBoundingClientRect();
         const speed = document.querySelector(".typing-speed").getBoundingClientRect();
         const rootSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
-        const valueSize = parseFloat(getComputedStyle(document.querySelector("#hud-kps")).fontSize);
-        return { inputRight: input.right, speedLeft: speed.left, fontRatio: valueSize / rootSize };
+        const value = document.querySelector("#hud-wpm");
+        const valueSize = parseFloat(getComputedStyle(value).fontSize);
+        const valueBounds = value.getBoundingClientRect();
+        return {
+          inputRight: input.right,
+          speedLeft: speed.left,
+          fontRatio: valueSize / rootSize,
+          fits: valueBounds.width <= speed.width,
+        };
       });
       expect(speedDisplay.speedLeft).toBeGreaterThan(speedDisplay.inputRight);
-      expect(speedDisplay.fontRatio).toBeGreaterThanOrEqual(3.54);
+      expect(speedDisplay.fontRatio).toBeLessThanOrEqual(3);
+      expect(speedDisplay.fits).toBe(true);
     }
     solved += 1;
     if (encounteredLevels.size < 2 && solved < 20) await advanceToNextQuestion(page, code);

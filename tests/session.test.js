@@ -59,7 +59,7 @@ test("only ranked Quick has a time limit", () => {
   assert.equal(createSessionConfig(GAME_MODES.PRACTICE, { durationMs: 1_000 }).durationMs, null);
 });
 
-test("snapshot reports live correct keystrokes per second", () => {
+test("snapshot reports live WPM from correct input and active typing time", () => {
   const clock = new ManualClock(0);
   const game = new GameState(gameOptions(clock));
   game.start();
@@ -68,10 +68,10 @@ test("snapshot reports live correct keystrokes per second", () => {
   clock.advance(500);
   game.handleKey("b");
   clock.advance(500);
-  assert.equal(game.snapshot().keystrokesPerSecond, 2);
+  assert.equal(game.snapshot().wpm, 24);
   game.pause("manual");
   clock.advance(2_000);
-  assert.equal(game.snapshot().keystrokesPerSecond, 2, "pause time is excluded");
+  assert.equal(game.snapshot().wpm, 24, "pause time is excluded");
 });
 
 test("Daily seed uses local date and content version", () => {

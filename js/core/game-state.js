@@ -2,9 +2,9 @@ import { asClock, clamp, createSystemClock, nonNegativeMilliseconds, timestampOf
 import { createTypingEngine } from "./typing-engine.js";
 import {
   advanceCombo,
-  calculateKeystrokesPerSecond,
   calculateProblemScore,
   calculateSessionMetrics,
+  calculateWpm,
 } from "./scoring.js";
 import {
   advanceDanger,
@@ -675,7 +675,7 @@ export class GameState {
       currentQuestion: this.currentQuestion,
       problemToken: this.problemToken,
       currentProblemElapsedMs: Math.round(this.currentProblemElapsedMs),
-      keystrokesPerSecond: calculateKeystrokesPerSecond(
+      wpm: calculateWpm(
         typing.correctKeystrokes,
         typing.activeTypingMs,
       ),

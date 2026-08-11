@@ -432,8 +432,13 @@ button:disabled {
 }
 
 .typing-speed strong {
-  font-size: clamp(3.75rem, 6vw, 4.5rem);
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: clamp(2rem, 3.2vw, 3rem);
   line-height: 0.95;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .typing-feedback {

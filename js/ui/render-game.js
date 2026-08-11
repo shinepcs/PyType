@@ -88,7 +88,7 @@ export function renderHud(state, { root = document, formatTime } = {}) {
   setText(byId("hud-score", root), Number(state.rawScore ?? state.score ?? 0).toLocaleString());
   setText(byId("battle-player-score", root), `${Number(state.rawScore ?? state.score ?? 0).toLocaleString()} PTS`);
   setText(byId("hud-combo", root), state.combo ?? 0);
-  setText(byId("hud-kps", root), Number(state.keystrokesPerSecond ?? 0).toFixed(2));
+  setText(byId("hud-wpm", root), Math.round(Number(state.wpm ?? 0)));
   const ordinal = state.problemOrdinal ?? ((state.solvedCount ?? 0) + 1);
   setText(byId("hud-problem", root), `${Math.min(Math.max(1, ordinal), state.maxProblems ?? 40)} / ${state.maxProblems ?? 40}`);
   const dangerPanel = root.querySelector(".danger-panel");
