@@ -35,6 +35,12 @@ Level 2에서는 미입력 정답 문자를 화면에 미리 표시하지 않습
 
 QUESTIONS에서는 이메일이나 관리자 계정 없이 Supabase 익명 인증으로 문제를 추가하거나 기존 정적 문제의 새 revision을 저장할 수 있습니다. 최신 검증 revision은 모든 사용자의 Practice에 병합되며 Quick/Daily 공식 문제와 랭킹 기준은 변경하지 않습니다.
 
+## 화면 미리보기
+
+| 메뉴 | 게임 화면 |
+| --- | --- |
+| ![Python Typing Survival 메뉴 화면](./Screenshots/pytype_menu.png) | ![Python Typing Survival 게임 화면](./Screenshots/pytype_game.png) |
+
 ## 구조
 
 ```text
