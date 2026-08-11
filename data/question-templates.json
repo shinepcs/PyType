@@ -10,9 +10,9 @@
       "difficulty": 1,
       "generatorId": "printLiteralCopy",
       "parameters": {
-        "values": ["Focus", "Again", "Precise", "Python rocks"]
+        "values": ["Focus", "Again", "Precise", "Python rocks", "Keep coding", "Clean input", "One more", "Type slowly", "No shortcuts", "Practice daily", "Exact syntax", "Ready to learn"]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 6,
       "tags": ["output", "quotes"],
       "enabled": true
@@ -33,10 +33,18 @@
           { "name": "speed", "value": 11 },
           { "name": "level", "value": 2 },
           { "name": "streak", "value": 4 },
-          { "name": "energy", "value": 9 }
+          { "name": "energy", "value": 9 },
+          { "name": "coins", "value": 15 },
+          { "name": "hearts", "value": 3 },
+          { "name": "score", "value": 27 },
+          { "name": "stage", "value": 6 },
+          { "name": "health", "value": 80 },
+          { "name": "combo", "value": 12 },
+          { "name": "turn", "value": 5 },
+          { "name": "bonus", "value": 21 }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 7,
       "tags": ["variable", "identifier"],
       "enabled": true
@@ -56,10 +64,18 @@
           { "name": "gems", "value": 5 },
           { "name": "stars", "value": 8 },
           { "name": "rounds", "value": 3 },
-          { "name": "points", "value": 14 }
+          { "name": "points", "value": 14 },
+          { "name": "lives", "value": 3 },
+          { "name": "coins", "value": 17 },
+          { "name": "level", "value": 6 },
+          { "name": "energy", "value": 20 },
+          { "name": "steps", "value": 9 },
+          { "name": "bonus", "value": 25 },
+          { "name": "turns", "value": 11 },
+          { "name": "health", "value": 90 }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 8,
       "tags": ["assignment", "variable"],
       "enabled": true
@@ -80,10 +96,18 @@
           { "value": 6, "output": 12 },
           { "value": 7, "output": 14 },
           { "value": -4, "output": -8 },
-          { "value": 12, "output": 24 }
+          { "value": 12, "output": 24 },
+          { "value": 3, "output": 6 },
+          { "value": 9, "output": 18 },
+          { "value": -6, "output": -12 },
+          { "value": 15, "output": 30 },
+          { "value": 21, "output": 42 },
+          { "value": 0, "output": 0 },
+          { "value": -9, "output": -18 },
+          { "value": 25, "output": 50 }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 6,
       "tags": ["number", "multiply"],
       "enabled": true
@@ -103,10 +127,18 @@
           { "word": "code" },
           { "word": "loop" },
           { "word": "skill" },
-          { "word": "focus" }
+          { "word": "focus" },
+          { "word": "python" },
+          { "word": "syntax" },
+          { "word": "input" },
+          { "word": "practice" },
+          { "word": "typing" },
+          { "word": "string" },
+          { "word": "repeat" },
+          { "word": "steady" }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 8,
       "tags": ["string", "quotes"],
       "enabled": true
@@ -127,10 +159,18 @@
           { "name": "active", "value": "True" },
           { "name": "done", "value": "False" },
           { "name": "ready", "value": "True" },
-          { "name": "empty", "value": "False" }
+          { "name": "empty", "value": "False" },
+          { "name": "visible", "value": "True" },
+          { "name": "paused", "value": "False" },
+          { "name": "valid", "value": "True" },
+          { "name": "locked", "value": "False" },
+          { "name": "online", "value": "True" },
+          { "name": "failed", "value": "False" },
+          { "name": "clean", "value": "True" },
+          { "name": "hidden", "value": "False" }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 6,
       "tags": ["boolean", "capitalization"],
       "enabled": true
@@ -150,10 +190,18 @@
           { "left": 9, "operator": "+", "right": 4, "output": 13 },
           { "left": 12, "operator": "-", "right": 5, "output": 7 },
           { "left": 6, "operator": "*", "right": 4, "output": 24 },
-          { "left": 20, "operator": "//", "right": 6, "output": 3 }
+          { "left": 20, "operator": "//", "right": 6, "output": 3 },
+          { "left": 8, "operator": "+", "right": 7, "output": 15 },
+          { "left": 18, "operator": "-", "right": 9, "output": 9 },
+          { "left": 7, "operator": "*", "right": 5, "output": 35 },
+          { "left": 24, "operator": "//", "right": 5, "output": 4 },
+          { "left": 15, "operator": "%", "right": 4, "output": 3 },
+          { "left": 9, "operator": "+", "right": 12, "output": 21 },
+          { "left": 30, "operator": "-", "right": 17, "output": 13 },
+          { "left": 4, "operator": "*", "right": 9, "output": 36 }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 7,
       "tags": ["arithmetic", "operator"],
       "enabled": true
@@ -174,10 +222,18 @@
           { "left": 2, "operator": "<", "right": 7 },
           { "left": 9, "operator": ">", "right": 3 },
           { "left": 5, "operator": "==", "right": 5 },
-          { "left": 4, "operator": "!=", "right": 6 }
+          { "left": 4, "operator": "!=", "right": 6 },
+          { "left": 3, "operator": "<=", "right": 3 },
+          { "left": 8, "operator": ">=", "right": 5 },
+          { "left": -2, "operator": "<", "right": 1 },
+          { "left": 12, "operator": ">", "right": 10 },
+          { "left": 0, "operator": "==", "right": 0 },
+          { "left": 7, "operator": "!=", "right": 9 },
+          { "left": 5, "operator": "<=", "right": 8 },
+          { "left": 14, "operator": ">=", "right": 14 }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 7,
       "tags": ["comparison", "boolean"],
       "enabled": true
@@ -197,10 +253,18 @@
           { "value": 8, "operator": ">", "limit": 3, "word": "high" },
           { "value": 2, "operator": "<", "limit": 5, "word": "low" },
           { "value": 7, "operator": "==", "limit": 7, "word": "same" },
-          { "value": 6, "operator": ">=", "limit": 6, "word": "ready" }
+          { "value": 6, "operator": ">=", "limit": 6, "word": "ready" },
+          { "value": 10, "operator": ">", "limit": 4, "word": "strong" },
+          { "value": 1, "operator": "<", "limit": 3, "word": "tiny" },
+          { "value": 12, "operator": "==", "limit": 12, "word": "match" },
+          { "value": 5, "operator": "<=", "limit": 5, "word": "safe" },
+          { "value": -1, "operator": "<", "limit": 0, "word": "negative" },
+          { "value": 9, "operator": "!=", "limit": 2, "word": "different" },
+          { "value": 15, "operator": ">=", "limit": 10, "word": "clear" },
+          { "value": 4, "operator": "<=", "limit": 8, "word": "inside" }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 13,
       "tags": ["condition", "indentation"],
       "enabled": true
@@ -221,10 +285,18 @@
           { "value": 1, "word": "one" },
           { "value": 2, "word": "two" },
           { "value": 3, "word": "three" },
-          { "value": 4, "word": "four" }
+          { "value": 4, "word": "four" },
+          { "value": 5, "word": "five" },
+          { "value": 6, "word": "six" },
+          { "value": 7, "word": "seven" },
+          { "value": 8, "word": "eight" },
+          { "value": 9, "word": "nine" },
+          { "value": 10, "word": "ten" },
+          { "value": 11, "word": "eleven" },
+          { "value": 12, "word": "twelve" }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 8,
       "tags": ["condition", "branch"],
       "enabled": true
@@ -244,10 +316,18 @@
           { "value": 1, "operator": ">", "limit": 5, "word": "small" },
           { "value": 9, "operator": "<", "limit": 4, "word": "large" },
           { "value": 3, "operator": "==", "limit": 8, "word": "different" },
-          { "value": 6, "operator": "!=", "limit": 6, "word": "equal" }
+          { "value": 6, "operator": "!=", "limit": 6, "word": "equal" },
+          { "value": 2, "operator": ">", "limit": 7, "word": "lower" },
+          { "value": 11, "operator": "<", "limit": 5, "word": "higher" },
+          { "value": 4, "operator": "==", "limit": 9, "word": "apart" },
+          { "value": 8, "operator": "!=", "limit": 8, "word": "matched" },
+          { "value": -1, "operator": ">=", "limit": 0, "word": "below" },
+          { "value": 3, "operator": "<=", "limit": 1, "word": "above" },
+          { "value": 10, "operator": ">", "limit": 20, "word": "short" },
+          { "value": 5, "operator": "<", "limit": 2, "word": "over" }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 15,
       "tags": ["condition", "fallback"],
       "enabled": true
@@ -268,10 +348,18 @@
           { "name": "n", "items": "[1, 3]", "output": "1\n3" },
           { "name": "word", "items": "[\"go\", \"run\"]", "output": "go\nrun" },
           { "name": "flag", "items": "[True, False]", "output": "True\nFalse" },
-          { "name": "x", "items": "[5, 10]", "output": "5\n10" }
+          { "name": "x", "items": "[5, 10]", "output": "5\n10" },
+          { "name": "score", "items": "[7, 9]", "output": "7\n9" },
+          { "name": "letter", "items": "[\"a\", \"z\"]", "output": "a\nz" },
+          { "name": "state", "items": "[False, True]", "output": "False\nTrue" },
+          { "name": "item", "items": "[2, 8, 12]", "output": "2\n8\n12" },
+          { "name": "color", "items": "[\"red\", \"blue\"]", "output": "red\nblue" },
+          { "name": "step", "items": "[1, 4, 7]", "output": "1\n4\n7" },
+          { "name": "value", "items": "[-1, 0]", "output": "-1\n0" },
+          { "name": "mode", "items": "[\"easy\", \"hard\"]", "output": "easy\nhard" }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 7,
       "tags": ["loop", "keyword"],
       "enabled": true
@@ -285,12 +373,12 @@
       "difficulty": 1,
       "generatorId": "rangeFillAscending",
       "parameters": {
-        "startMin": 5,
-        "startMax": 8,
+        "startMin": 0,
+        "startMax": 11,
         "lengthMin": 3,
         "lengthMax": 4
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 8,
       "tags": ["loop", "builtin"],
       "enabled": true
@@ -310,10 +398,18 @@
           { "name": "n", "start": 3, "step": 1, "output": "3\n2\n1" },
           { "name": "count", "start": 4, "step": 2, "output": "4\n2" },
           { "name": "timer", "start": 2, "step": 1, "output": "2\n1" },
-          { "name": "value", "start": 6, "step": 3, "output": "6\n3" }
+          { "name": "value", "start": 6, "step": 3, "output": "6\n3" },
+          { "name": "lives", "start": 5, "step": 1, "output": "5\n4\n3\n2\n1" },
+          { "name": "ticks", "start": 8, "step": 2, "output": "8\n6\n4\n2" },
+          { "name": "fuel", "start": 9, "step": 3, "output": "9\n6\n3" },
+          { "name": "steps", "start": 10, "step": 5, "output": "10\n5" },
+          { "name": "tries", "start": 4, "step": 1, "output": "4\n3\n2\n1" },
+          { "name": "rounds", "start": 12, "step": 4, "output": "12\n8\n4" },
+          { "name": "power", "start": 14, "step": 7, "output": "14\n7" },
+          { "name": "cards", "start": 15, "step": 5, "output": "15\n10\n5" }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 15,
       "tags": ["loop", "condition"],
       "enabled": true
@@ -333,10 +429,18 @@
           { "items": "[2, 4, 6]", "stop": 4, "output": "2" },
           { "items": "[3, 6, 9]", "stop": 9, "output": "3\n6" },
           { "items": "[1, 5, 7]", "stop": 5, "output": "1" },
-          { "items": "[4, 8, 12]", "stop": 12, "output": "4\n8" }
+          { "items": "[4, 8, 12]", "stop": 12, "output": "4\n8" },
+          { "items": "[5, 10, 15]", "stop": 10, "output": "5" },
+          { "items": "[7, 14, 21]", "stop": 21, "output": "7\n14" },
+          { "items": "[0, 1, 2]", "stop": 1, "output": "0" },
+          { "items": "[-3, 0, 3]", "stop": 0, "output": "-3" },
+          { "items": "[6, 12, 18]", "stop": 18, "output": "6\n12" },
+          { "items": "[9, 8, 7]", "stop": 7, "output": "9\n8" },
+          { "items": "[11, 22, 33]", "stop": 22, "output": "11" },
+          { "items": "[2, 5, 8]", "stop": 8, "output": "2\n5" }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 15,
       "tags": ["flow", "loop"],
       "enabled": true
@@ -357,10 +461,18 @@
           { "items": "[2, 4, 6]", "skip": 4, "output": "2\n6" },
           { "items": "[3, 6, 9]", "skip": 3, "output": "6\n9" },
           { "items": "[1, 5, 7]", "skip": 7, "output": "1\n5" },
-          { "items": "[4, 8, 12]", "skip": 8, "output": "4\n12" }
+          { "items": "[4, 8, 12]", "skip": 8, "output": "4\n12" },
+          { "items": "[5, 10, 15]", "skip": 10, "output": "5\n15" },
+          { "items": "[7, 14, 21]", "skip": 21, "output": "7\n14" },
+          { "items": "[0, 1, 2]", "skip": 0, "output": "1\n2" },
+          { "items": "[-3, 0, 3]", "skip": 0, "output": "-3\n3" },
+          { "items": "[6, 12, 18]", "skip": 6, "output": "12\n18" },
+          { "items": "[9, 8, 7]", "skip": 8, "output": "9\n7" },
+          { "items": "[11, 22, 33]", "skip": 33, "output": "11\n22" },
+          { "items": "[2, 5, 8]", "skip": 5, "output": "2\n8" }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 8,
       "tags": ["flow", "loop"],
       "enabled": true
@@ -380,10 +492,18 @@
           { "items": "[3, 6, 9]", "index": 2, "output": 9 },
           { "items": "[\"x\", \"y\"]", "index": 1, "output": "y" },
           { "items": "[True, False]", "index": 0, "output": "True" },
-          { "items": "[8, 5, 2]", "index": 1, "output": 5 }
+          { "items": "[8, 5, 2]", "index": 1, "output": 5 },
+          { "items": "[10, 20, 30]", "index": 0, "output": 10 },
+          { "items": "[\"red\", \"blue\"]", "index": 0, "output": "red" },
+          { "items": "[False, True]", "index": 1, "output": "True" },
+          { "items": "[-2, 0, 2]", "index": 1, "output": 0 },
+          { "items": "[7, 14, 21]", "index": 2, "output": 21 },
+          { "items": "[\"up\", \"down\"]", "index": 1, "output": "down" },
+          { "items": "[1, 1, 2]", "index": 2, "output": 2 },
+          { "items": "[99, 50, 25]", "index": 1, "output": 50 }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 10,
       "tags": ["collection", "index"],
       "enabled": true
@@ -404,10 +524,18 @@
           { "items": "[1]", "value": 2, "output": "[1, 2]" },
           { "items": "[\"a\"]", "value": "\"b\"", "output": "['a', 'b']" },
           { "items": "[]", "value": "True", "output": "[True]" },
-          { "items": "[4, 5]", "value": 6, "output": "[4, 5, 6]" }
+          { "items": "[4, 5]", "value": 6, "output": "[4, 5, 6]" },
+          { "items": "[10]", "value": 20, "output": "[10, 20]" },
+          { "items": "[\"red\"]", "value": "\"blue\"", "output": "['red', 'blue']" },
+          { "items": "[False]", "value": "True", "output": "[False, True]" },
+          { "items": "[-2, 0]", "value": 2, "output": "[-2, 0, 2]" },
+          { "items": "[]", "value": "\"first\"", "output": "['first']" },
+          { "items": "[7, 14]", "value": 21, "output": "[7, 14, 21]" },
+          { "items": "[\"up\", \"down\"]", "value": "\"left\"", "output": "['up', 'down', 'left']" },
+          { "items": "[1, 1]", "value": 2, "output": "[1, 1, 2]" }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 7,
       "tags": ["collection", "method"],
       "enabled": true
@@ -427,10 +555,18 @@
           { "items": "[4, 8, 12]", "index": 0, "output": 4 },
           { "items": "[\"a\", \"b\", \"c\"]", "index": 1, "output": "b" },
           { "items": "[True, False]", "index": 0, "output": "True" },
-          { "items": "[5, 10, 15]", "index": 2, "output": 15 }
+          { "items": "[5, 10, 15]", "index": 2, "output": 15 },
+          { "items": "[20, 30, 40]", "index": 1, "output": 30 },
+          { "items": "[\"red\", \"blue\"]", "index": 0, "output": "red" },
+          { "items": "[False, True]", "index": 1, "output": "True" },
+          { "items": "[-2, 0, 2]", "index": 1, "output": 0 },
+          { "items": "[7, 14, 21]", "index": 0, "output": 7 },
+          { "items": "[\"up\", \"down\"]", "index": 1, "output": "down" },
+          { "items": "[1, 1, 2]", "index": 2, "output": 2 },
+          { "items": "[99, 50, 25]", "index": 0, "output": 99 }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 14,
       "tags": ["collection", "method"],
       "enabled": true
@@ -451,10 +587,18 @@
           { "items": "[4, 1, 3]", "output": "[1, 3, 4]" },
           { "items": "[9, 2, 6]", "output": "[2, 6, 9]" },
           { "items": "[\"c\", \"a\", \"b\"]", "output": "['a', 'b', 'c']" },
-          { "items": "[7, 5, 8]", "output": "[5, 7, 8]" }
+          { "items": "[7, 5, 8]", "output": "[5, 7, 8]" },
+          { "items": "[10, 3, 6]", "output": "[3, 6, 10]" },
+          { "items": "[-1, -5, 2]", "output": "[-5, -1, 2]" },
+          { "items": "[\"z\", \"x\", \"y\"]", "output": "['x', 'y', 'z']" },
+          { "items": "[12, 12, 4]", "output": "[4, 12, 12]" },
+          { "items": "[0, 9, 1]", "output": "[0, 1, 9]" },
+          { "items": "[21, 7, 14]", "output": "[7, 14, 21]" },
+          { "items": "[5, 2, 5]", "output": "[2, 5, 5]" },
+          { "items": "[100, 20, 50]", "output": "[20, 50, 100]" }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 7,
       "tags": ["collection", "ordering"],
       "enabled": true
@@ -474,10 +618,18 @@
           { "items": "[1, 4, 7]", "output": "[7, 4, 1]" },
           { "items": "[\"x\", \"y\"]", "output": "['y', 'x']" },
           { "items": "[True, False]", "output": "[False, True]" },
-          { "items": "[2, 3, 5, 8]", "output": "[8, 5, 3, 2]" }
+          { "items": "[2, 3, 5, 8]", "output": "[8, 5, 3, 2]" },
+          { "items": "[10, 20, 30]", "output": "[30, 20, 10]" },
+          { "items": "[\"a\", \"b\", \"c\"]", "output": "['c', 'b', 'a']" },
+          { "items": "[False, True, True]", "output": "[True, True, False]" },
+          { "items": "[-2, 0, 2]", "output": "[2, 0, -2]" },
+          { "items": "[7, 14]", "output": "[14, 7]" },
+          { "items": "[\"up\", \"down\"]", "output": "['down', 'up']" },
+          { "items": "[1, 1, 2]", "output": "[2, 1, 1]" },
+          { "items": "[99, 50, 25]", "output": "[25, 50, 99]" }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 13,
       "tags": ["collection", "ordering"],
       "enabled": true
@@ -498,10 +650,18 @@
           { "value": "[1, 2, 3, 4]", "output": 4 },
           { "value": "\"code\"", "output": 4 },
           { "value": "[True, False]", "output": 2 },
-          { "value": "\"typing\"", "output": 6 }
+          { "value": "\"typing\"", "output": 6 },
+          { "value": "[10, 20, 30, 40]", "output": 4 },
+          { "value": "\"python\"", "output": 6 },
+          { "value": "[]", "output": 0 },
+          { "value": "\"a\"", "output": 1 },
+          { "value": "[False, True, True]", "output": 3 },
+          { "value": "\"practice\"", "output": 8 },
+          { "value": "[7, 14]", "output": 2 },
+          { "value": "\"exact input\"", "output": 11 }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 6,
       "tags": ["builtin", "length"],
       "enabled": true
@@ -521,10 +681,18 @@
           { "numbers": "[1, 2, 3]", "output": 6 },
           { "numbers": "[5, 5, 5]", "output": 15 },
           { "numbers": "[-2, 4, 6]", "output": 8 },
-          { "numbers": "[10, 20]", "output": 30 }
+          { "numbers": "[10, 20]", "output": 30 },
+          { "numbers": "[4, 6, 8]", "output": 18 },
+          { "numbers": "[-5, 5]", "output": 0 },
+          { "numbers": "[7, 14, 21]", "output": 42 },
+          { "numbers": "[0, 0, 9]", "output": 9 },
+          { "numbers": "[12, -2, 3]", "output": 13 },
+          { "numbers": "[25, 25]", "output": 50 },
+          { "numbers": "[1, 4, 9]", "output": 14 },
+          { "numbers": "[-3, -6, 12]", "output": 3 }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 10,
       "tags": ["builtin", "arithmetic"],
       "enabled": true
@@ -545,10 +713,18 @@
           { "values": "[4, 7, 2]", "output": 2 },
           { "values": "[-3, 0, 5]", "output": -3 },
           { "values": "[12, 8, 10]", "output": 8 },
-          { "values": "[6, 6, 9]", "output": 6 }
+          { "values": "[6, 6, 9]", "output": 6 },
+          { "values": "[10, 3, 8]", "output": 3 },
+          { "values": "[-8, -2, -5]", "output": -8 },
+          { "values": "[0, 4, 2]", "output": 0 },
+          { "values": "[21, 7, 14]", "output": 7 },
+          { "values": "[5, 5, 5]", "output": 5 },
+          { "values": "[100, 20, 50]", "output": 20 },
+          { "values": "[-1, 1, 0]", "output": -1 },
+          { "values": "[12, 18, 15]", "output": 12 }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 6,
       "tags": ["builtin", "minimum"],
       "enabled": true
@@ -568,10 +744,18 @@
           { "values": "[4, 7, 2]", "output": 7 },
           { "values": "[-3, 0, 5]", "output": 5 },
           { "values": "[12, 8, 10]", "output": 12 },
-          { "values": "[6, 6, 9]", "output": 9 }
+          { "values": "[6, 6, 9]", "output": 9 },
+          { "values": "[10, 3, 8]", "output": 10 },
+          { "values": "[-8, -2, -5]", "output": -2 },
+          { "values": "[0, 4, 2]", "output": 4 },
+          { "values": "[21, 7, 14]", "output": 21 },
+          { "values": "[5, 5, 5]", "output": 5 },
+          { "values": "[100, 20, 50]", "output": 100 },
+          { "values": "[-1, 1, 0]", "output": 1 },
+          { "values": "[12, 18, 15]", "output": 18 }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 10,
       "tags": ["builtin", "maximum"],
       "enabled": true
@@ -593,10 +777,18 @@
           { "low": 2, "high": 5, "example": 3 },
           { "low": 10, "high": 12, "example": 11 },
           { "low": -2, "high": 2, "example": 0 },
-          { "low": 20, "high": 25, "example": 24 }
+          { "low": 20, "high": 25, "example": 24 },
+          { "low": 1, "high": 6, "example": 5 },
+          { "low": 30, "high": 35, "example": 32 },
+          { "low": -10, "high": -5, "example": -7 },
+          { "low": 100, "high": 105, "example": 101 },
+          { "low": 7, "high": 9, "example": 8 },
+          { "low": 40, "high": 50, "example": 46 },
+          { "low": -1, "high": 1, "example": 1 },
+          { "low": 60, "high": 70, "example": 63 }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 8,
       "tags": ["module", "example-output"],
       "enabled": true
@@ -617,10 +809,18 @@
           { "items": "[1, 3, 5]", "example": "[5, 1, 3]" },
           { "items": "[4, 5, 6]", "example": "[5, 6, 4]" },
           { "items": "[\"a\", \"b\"]", "example": "['b', 'a']" },
-          { "items": "[True, False]", "example": "[False, True]" }
+          { "items": "[True, False]", "example": "[False, True]" },
+          { "items": "[2, 4, 6]", "example": "[6, 2, 4]" },
+          { "items": "[7, 8, 9]", "example": "[8, 9, 7]" },
+          { "items": "[\"x\", \"y\", \"z\"]", "example": "['z', 'x', 'y']" },
+          { "items": "[False, True, True]", "example": "[True, False, True]" },
+          { "items": "[10, 20, 30]", "example": "[20, 30, 10]" },
+          { "items": "[\"red\", \"blue\"]", "example": "['blue', 'red']" },
+          { "items": "[-1, 0, 1]", "example": "[1, -1, 0]" },
+          { "items": "[5, 5, 8]", "example": "[5, 8, 5]" }
         ]
       },
-      "variantCount": 4,
+      "variantCount": 12,
       "targetSeconds": 15,
       "tags": ["module", "example-output"],
       "enabled": true

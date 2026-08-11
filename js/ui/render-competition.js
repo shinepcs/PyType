@@ -30,11 +30,16 @@ export function selectCompetitionMarkers(competitors, score, { perSide = 2 } = {
     .filter((entry) => entry.score > currentScore)
     .sort((left, right) => left.score - right.score || left.playerName.localeCompare(right.playerName))
     .slice(0, perSide);
-  const behindPositions = perSide === 1 ? [25] : [18, 34];
-  const aheadPositions = perSide === 1 ? [75] : [66, 82];
+  const positionFor = (entry, relation, index) => {
+    const highScore = Math.max(1, currentScore, entry.score);
+    const relativeGap = Math.min(1, Math.abs(entry.score - currentScore) / highScore);
+    const direction = relation === "ahead" ? 1 : -1;
+    const separation = index * 2 * direction;
+    return Math.min(88, Math.max(12, 50 + direction * (4 + relativeGap * 34) + separation));
+  };
   return [
-    ...behind.map((entry, index) => ({ ...entry, relation: "behind", position: behindPositions[index] ?? 34 })),
-    ...ahead.map((entry, index) => ({ ...entry, relation: "ahead", position: aheadPositions[index] ?? 66 })),
+    ...behind.map((entry, index) => ({ ...entry, relation: "behind", position: positionFor(entry, "behind", index) })),
+    ...ahead.map((entry, index) => ({ ...entry, relation: "ahead", position: positionFor(entry, "ahead", index) })),
   ];
 }
 
@@ -51,29 +56,35 @@ export function renderBattleCompetition({ competitors = [], score = 0 } = {}, { 
   const lane = root.querySelector("#battle-competitors");
   if (!lane) return [];
   const markers = selectCompetitionMarkers(competitors, score);
-  const signature = markers.map((marker) => `${marker.playerName}:${marker.score}:${marker.relation}:${marker.position}`).join("|");
-  if (lane.dataset.signature === signature) return markers;
-  lane.dataset.signature = signature;
-  lane.replaceChildren();
+  const existing = new Map(
+    [...lane.querySelectorAll(".rival-unit")].map((unit) => [unit.dataset.playerName, unit]),
+  );
   for (const marker of markers) {
-    const unit = document.createElement("div");
-    unit.className = "rival-unit";
+    let unit = existing.get(marker.playerName);
+    if (!unit) {
+      unit = document.createElement("div");
+      unit.className = "rival-unit";
+      unit.dataset.playerName = marker.playerName;
+
+      const face = document.createElement("span");
+      face.className = "rival-face";
+      face.textContent = "×";
+      const label = document.createElement("span");
+      label.className = "rival-unit-label";
+      const name = document.createElement("strong");
+      name.textContent = marker.playerName;
+      const rivalScore = document.createElement("small");
+      label.append(name, rivalScore);
+      unit.append(face, label);
+      lane.append(unit);
+    }
+    existing.delete(marker.playerName);
     unit.dataset.relation = marker.relation;
     unit.style.left = `${marker.position}%`;
-
-    const face = document.createElement("span");
-    face.className = "rival-face";
-    face.textContent = "×";
-    const label = document.createElement("span");
-    label.className = "rival-unit-label";
-    const name = document.createElement("strong");
-    name.textContent = marker.playerName;
-    const rivalScore = document.createElement("small");
+    const rivalScore = unit.querySelector("small");
     rivalScore.textContent = `${marker.score.toLocaleString()} PTS`;
-    label.append(name, rivalScore);
-    unit.append(face, label);
-    lane.append(unit);
   }
+  existing.forEach((unit) => unit.remove());
   return markers;
 }
 

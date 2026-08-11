@@ -366,3 +366,18 @@ test("Practice skip records an error without adding a solved problem or score", 
   assert.equal(game.rawScore, 0);
   assert.equal(game.currentQuestion, null);
 });
+
+test("Enter submission records a final-line typo as incorrect and releases the next problem", () => {
+  const clock = new ManualClock(0);
+  const game = new GameState(gameOptions(clock));
+  game.start();
+  game.startProblem(question({ answer: "ab\ncd", code: "ab\ncd", acceptedAnswers: ["ab\ncd"] }));
+  game.input("ax\ncd");
+  const result = game.submitIncorrectProblem(undefined, game.problemToken);
+  assert.equal(result.submittedIncorrect, true);
+  assert.equal(result.errorCount, 1);
+  assert.equal(result.problemScore, 0);
+  assert.equal(game.problemsSolved, 0);
+  assert.equal(game.rawScore, 0);
+  assert.equal(game.currentQuestion, null);
+});

@@ -29,6 +29,17 @@ test("CRLF is normalized and Level 1 tab becomes exactly four attempts", () => {
   assert.equal(engine.completed, true);
 });
 
+test("Enter stays a line break before the final line and becomes an incorrect-submit signal on the final line", () => {
+  const engine = new TypingEngine("first\nsecond");
+  engine.insert("f1rst", 0);
+  assert.equal(engine.shouldSubmitIncorrectOnEnter(), false);
+  engine.handleKey("Enter", 10);
+  assert.equal(engine.input, "f1rst\n");
+  engine.insert("second", 20);
+  assert.equal(engine.completed, false);
+  assert.equal(engine.shouldSubmitIncorrectOnEnter(), true);
+});
+
 test("a corrected first typo permanently reduces accuracy and cleanSolve", () => {
   const engine = new TypingEngine("abc");
   const typo = engine.handleKey("x", 0);

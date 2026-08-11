@@ -105,6 +105,14 @@ export class TypingEngine {
     return this.pauseStartedAt !== null;
   }
 
+  shouldSubmitIncorrectOnEnter() {
+    if (this.locked || this.paused || this.isComposing || this.completed || this.input.length === 0) {
+      return false;
+    }
+    const lineBreaks = (value) => [...value].filter((character) => character === "\n").length;
+    return lineBreaks(this.input) >= lineBreaks(this.answer);
+  }
+
   compositionStart() {
     this.isComposing = true;
     return frozenEvent({ ignored: true, input: this.input, completed: this.completed });

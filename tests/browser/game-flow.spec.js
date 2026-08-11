@@ -136,6 +136,8 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
   while (solved < 20 && encounteredLevels.size < 2) {
     encounteredLevels.add(await page.locator("#question-level").textContent());
     if ((await page.locator("#question-level").textContent()) === "LEVEL 2") {
+      await expect(page.locator("#question-hint")).toBeVisible();
+      await expect(page.locator("#question-hint")).toContainText(/힌트 · .*[가-힣]/);
       await expect(page.locator("#typing-feedback")).toHaveText("");
       if (!verifiedLevel2Timing) {
         const frozenTime = await page.locator("#hud-time").textContent();
@@ -327,21 +329,77 @@ test("Sample Logic starts a short executable non-ranked Practice pool", async ({
   await expect(page.locator("#skip-button")).toBeVisible();
 });
 
-test("Beginner Guide types a Korean explanation as an executable Python comment", async ({ page }) => {
+test("Beginner Guide presents one of 50 practical long-form programs in a focused workspace", async ({ page }) => {
   await preparePage(page, { nickname: "BeginnerQA" });
   await page.locator("#start-beginner").click();
-  await expect(page.locator("#game-mode-label")).toHaveText("BEGINNER GUIDE");
+  await expect(page.locator("#game-mode-label")).toContainText("50 PRACTICAL SNIPPETS");
   await page.clock.runFor(3_050);
   const code = await page.locator("#question-code").textContent();
   expect(code.startsWith("# ")).toBe(true);
-  expect(code.split("\n").length).toBeLessThanOrEqual(3);
-  await expect(page.locator("#typing-feedback")).toContainText("# ");
+  expect(code.split("\n").length).toBeGreaterThanOrEqual(4);
+  expect(code.split("\n").length).toBeLessThanOrEqual(12);
+  await expect(page.locator("#hud-problem")).toHaveText("1 / 50");
+  await expect(page.locator(".code-card")).toBeVisible();
+  await expect(page.locator("#battle-lane")).toBeHidden();
+  await expect(page.locator("#practice-rivals")).toBeHidden();
+  await expect(page.locator("#game-online-players")).toBeHidden();
+  await expect(page.locator("#typing-feedback")).toHaveText("");
   await expect(page.locator("#skip-button")).toBeVisible();
+  const desktopGeometry = await page.evaluate(() => {
+    const reference = document.querySelector(".code-card").getBoundingClientRect();
+    const typing = document.querySelector(".typing-card").getBoundingClientRect();
+    const input = document.querySelector("#typing-input").getBoundingClientRect();
+    return { referenceRight: reference.right, typingLeft: typing.left, inputHeight: input.height };
+  });
+  expect(desktopGeometry.typingLeft).toBeGreaterThanOrEqual(desktopGeometry.referenceRight);
+  expect(desktopGeometry.inputHeight).toBeGreaterThan(300);
+  for (const viewport of [
+    { width: 360, height: 800 },
+    { width: 768, height: 900 },
+    { width: 1280, height: 900 },
+  ]) {
+    await page.setViewportSize(viewport);
+    const layout = await page.evaluate(() => {
+      const reference = document.querySelector(".code-card").getBoundingClientRect();
+      const typing = document.querySelector(".typing-card").getBoundingClientRect();
+      const input = document.querySelector("#typing-input").getBoundingClientRect();
+      return {
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: innerWidth,
+        referenceLeft: reference.left,
+        referenceRight: reference.right,
+        referenceBottom: reference.bottom,
+        typingLeft: typing.left,
+        typingRight: typing.right,
+        typingTop: typing.top,
+        inputHeight: input.height,
+      };
+    });
+    expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth);
+    expect(layout.referenceLeft).toBeGreaterThanOrEqual(0);
+    expect(layout.referenceRight).toBeLessThanOrEqual(layout.viewportWidth);
+    expect(layout.typingLeft).toBeGreaterThanOrEqual(0);
+    expect(layout.typingRight).toBeLessThanOrEqual(layout.viewportWidth);
+    expect(layout.inputHeight).toBeGreaterThan(280);
+    if (viewport.width <= 900) {
+      expect(layout.typingTop).toBeGreaterThanOrEqual(layout.referenceBottom);
+    } else {
+      expect(layout.typingLeft).toBeGreaterThanOrEqual(layout.referenceRight);
+    }
+  }
+  const answer = await currentAnswer(page);
+  const wrongAnswer = `${answer.slice(0, -1)}${answer.endsWith("x") ? "y" : "x"}`;
+  await page.locator("#typing-input").focus();
+  await page.keyboard.insertText(wrongAnswer);
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#typing-input")).toBeDisabled();
+  await expect(page.locator("#feedback-message")).toContainText("오답으로 기록");
+  await advanceToNextQuestion(page, code);
 });
 
 test("Python operators render as separate characters without font ligatures", async ({ page }) => {
   await preparePage(page, { nickname: "LigatureQA" });
-  await page.locator("#start-beginner").click();
+  await page.locator("#start-samples").click();
   await page.clock.runFor(3_050);
 
   for (const selector of ["#question-code", "#typing-feedback", "#typing-input"]) {
@@ -360,7 +418,7 @@ test("Python operators render as separate characters without font ligatures", as
 
 test("desktop game shows rivals around YOU, online players on the right, and a named overtake effect", async ({ page }) => {
   await preparePage(page, { nickname: "RaceQA" });
-  await page.locator("#start-beginner").click();
+  await page.locator("#start-samples").click();
   await page.clock.runFor(3_050);
   await expect(page.locator("#game-online-players")).toBeVisible();
 
@@ -368,12 +426,22 @@ test("desktop game shows rivals around YOU, online players on the right, and a n
     const moduleUrl = new URL("./js/ui/render-competition.js", document.baseURI).href;
     const { renderBattleCompetition, triggerOvertakeEffect } = await import(moduleUrl);
     renderBattleCompetition({
-      score: 500,
+      score: 100,
       competitors: [
         { playerName: "BehindQA", score: 300 },
-        { playerName: "AheadQA", score: 700 },
+        { playerName: "AheadQA", score: 1_000 },
       ],
     });
+    const movingRival = document.querySelector('.rival-unit[data-player-name="AheadQA"]');
+    const earlyLeft = parseFloat(movingRival.style.left);
+    renderBattleCompetition({
+      score: 900,
+      competitors: [
+        { playerName: "BehindQA", score: 300 },
+        { playerName: "AheadQA", score: 1_000 },
+      ],
+    });
+    const caughtUpRival = document.querySelector('.rival-unit[data-player-name="AheadQA"]');
     triggerOvertakeEffect([{ playerName: "BehindQA", score: 300 }]);
     const main = document.querySelector(".game-main-column").getBoundingClientRect();
     const online = document.querySelector("#game-online-players").getBoundingClientRect();
@@ -381,6 +449,9 @@ test("desktop game shows rivals around YOU, online players on the right, and a n
     const behind = document.querySelector('.rival-unit[data-relation="behind"]').getBoundingClientRect();
     const ahead = document.querySelector('.rival-unit[data-relation="ahead"]').getBoundingClientRect();
     const rivalName = document.querySelector('.rival-unit[data-relation="behind"] strong');
+    const rivalUnit = document.querySelector('.rival-unit[data-relation="behind"]');
+    const rivalLabel = rivalName.getBoundingClientRect();
+    const rivalShape = rivalUnit.getBoundingClientRect();
     return {
       behindName: document.querySelector('.rival-unit[data-relation="behind"] strong').textContent,
       aheadName: document.querySelector('.rival-unit[data-relation="ahead"] strong').textContent,
@@ -391,6 +462,8 @@ test("desktop game shows rivals around YOU, online players on the right, and a n
       youLeft: you.left,
       behindLeft: behind.left,
       aheadLeft: ahead.left,
+      rivalMovedOnSameNode: caughtUpRival === movingRival && parseFloat(caughtUpRival.style.left) < earlyLeft,
+      rivalLabelCenterDelta: Math.abs((rivalLabel.left + rivalLabel.width / 2) - (rivalShape.left + rivalShape.width / 2)),
       rivalNameFontRatio: parseFloat(getComputedStyle(rivalName).fontSize)
         / parseFloat(getComputedStyle(document.documentElement).fontSize),
     };
@@ -402,6 +475,8 @@ test("desktop game shows rivals around YOU, online players on the right, and a n
   expect(competition.onlineLeft).toBeGreaterThanOrEqual(competition.mainRight);
   expect(competition.behindLeft).toBeLessThan(competition.youLeft);
   expect(competition.aheadLeft).toBeGreaterThan(competition.youLeft);
+  expect(competition.rivalMovedOnSameNode).toBe(true);
+  expect(competition.rivalLabelCenterDelta).toBeLessThan(2);
   expect(competition.rivalNameFontRatio).toBeCloseTo(1.59, 2);
 });
 

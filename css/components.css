@@ -233,11 +233,8 @@ button:disabled {
   height: 31px;
   display: grid;
   place-items: center;
-  color: var(--red);
-  background: rgba(255, 102, 125, 0.14);
-  border: 1px solid var(--red);
-  box-shadow: 0 0 18px rgba(255, 102, 125, 0.13);
-  transform: translateX(-50%) rotate(45deg);
+  transform: translateX(-50%);
+  transition: left 260ms ease-out, opacity 180ms ease-out, filter 180ms ease-out;
   z-index: 2;
 }
 
@@ -247,7 +244,21 @@ button:disabled {
 }
 
 .rival-face {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  color: var(--red);
+  background: rgba(255, 102, 125, 0.14);
+  border: 1px solid var(--red);
+  box-shadow: 0 0 18px rgba(255, 102, 125, 0.13);
   font-family: var(--font-code);
+  font-size: 0;
+  transform: rotate(45deg);
+}
+
+.rival-face::after {
+  content: "×";
   font-size: 1rem;
   transform: rotate(-45deg);
 }
@@ -263,15 +274,28 @@ button:disabled {
   font-family: var(--font-code);
   font-size: 0.53rem;
   line-height: 1.2;
-  transform: translateX(-50%) rotate(-45deg);
+  transform: translateX(-50%);
 }
 
 .rival-unit-label strong {
+  display: block;
+  width: 100%;
   font-size: 1.59rem;
   max-width: 12ch;
   overflow: hidden;
+  text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.question-hint {
+  margin: 0.65rem 0 0;
+  padding: 0.65rem 0.75rem;
+  color: var(--text-soft);
+  background: rgba(93, 228, 255, 0.07);
+  border-left: 2px solid var(--cyan);
+  font-size: 0.82rem;
+  line-height: 1.5;
 }
 
 .rival-unit-label small {
@@ -341,6 +365,52 @@ button:disabled {
   line-height: 1.7;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+#screen-game[data-beginner-guide="true"] .battle-lane,
+#screen-game[data-beginner-guide="true"] .practice-rivals,
+#screen-game[data-beginner-guide="true"] .game-online-players {
+  display: none;
+}
+
+#screen-game[data-beginner-guide="true"] .code-card,
+#screen-game[data-beginner-guide="true"] .typing-card {
+  min-height: 31rem;
+}
+
+#screen-game[data-beginner-guide="true"] .code-display {
+  min-height: 23rem;
+  max-height: 55vh;
+  overflow: auto;
+}
+
+#screen-game[data-beginner-guide="true"] .typing-feedback {
+  max-height: 8rem;
+  overflow: auto;
+}
+
+#screen-game[data-beginner-guide="true"] #typing-input {
+  min-height: 23rem;
+  max-height: 55vh;
+  overflow: auto;
+  resize: vertical;
+}
+
+@media (max-width: 900px) {
+  #screen-game[data-beginner-guide="true"] .problem-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #screen-game[data-beginner-guide="true"] .code-card,
+  #screen-game[data-beginner-guide="true"] .typing-card {
+    min-height: auto;
+  }
+
+  #screen-game[data-beginner-guide="true"] .code-display,
+  #screen-game[data-beginner-guide="true"] #typing-input {
+    min-height: 18rem;
+    max-height: none;
+  }
 }
 
 .code-display {
@@ -1021,8 +1091,8 @@ dialog p {
 }
 
 @keyframes enemy-hit {
-  35% { opacity: 0.2; transform: translateX(-50%) rotate(45deg) scale(1.45); }
-  100% { opacity: 1; transform: translateX(-50%) rotate(45deg) scale(1); }
+  35% { opacity: 0.2; transform: translateX(-50%) scale(1.45); }
+  100% { opacity: 1; transform: translateX(-50%) scale(1); }
 }
 
 @media (max-width: 620px) {

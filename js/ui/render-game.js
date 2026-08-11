@@ -1,3 +1,5 @@
+import { getLevel2Hint } from "../content/level2-hints.js";
+
 const byId = (id, root = document) => root.querySelector(`#${id}`);
 
 function setText(node, value) {
@@ -22,8 +24,9 @@ function renderCodeWithBlank(node, code, isFill) {
 
 export function renderQuestion(question, { root = document, timed = true } = {}) {
   const isFill = question.level === 2 || question.type === "fill";
+  const isBeginnerGuide = question.tags?.includes("beginner-guide") === true;
   const codeCard = byId("question-code", root)?.closest(".code-card");
-  if (codeCard) codeCard.hidden = !isFill;
+  if (codeCard) codeCard.hidden = !isFill && !isBeginnerGuide;
   setText(byId("question-level", root), `LEVEL ${question.level}`);
   setText(byId("question-skill", root), String(question.skill).toUpperCase());
   setText(
@@ -32,8 +35,17 @@ export function renderQuestion(question, { root = document, timed = true } = {})
   );
   setText(
     byId("question-label", root),
-    isFill ? "정답 힌트 없이 코드와 OUTPUT만 보고 빈칸의 답을 입력하세요." : "보이는 코드를 공백과 줄바꿈까지 그대로 입력하세요.",
+    isFill
+      ? "코드와 OUTPUT을 보고 빈칸의 답을 입력하세요."
+      : isBeginnerGuide
+        ? `실무 예제 · ${question.guideTitle} — 참조 코드를 공백과 줄바꿈까지 그대로 입력하세요.`
+        : "보이는 코드를 공백과 줄바꿈까지 그대로 입력하세요.",
   );
+  const hint = byId("question-hint", root);
+  if (hint) {
+    hint.hidden = !isFill;
+    setText(hint, isFill ? `힌트 · ${getLevel2Hint(question)}` : "");
+  }
   renderCodeWithBlank(byId("question-code", root), question.code, isFill);
 
   const outputPanel = byId("output-panel", root);
@@ -44,7 +56,9 @@ export function renderQuestion(question, { root = document, timed = true } = {})
   }
   setText(
     byId("typing-help", root),
-    isFill
+    isBeginnerGuide
+      ? "중간 줄 Enter는 줄바꿈입니다. 마지막 줄 Enter는 오답이어도 제출합니다. Tab은 공백 4칸입니다."
+      : isFill
       ? timed
         ? "시간 정지 · 정답 +3초 · 첫 오타 -2초 · Tab으로 입력 영역을 벗어날 수 있습니다."
         : "시간 제한 없음 · Tab으로 입력 영역을 벗어날 수 있습니다."

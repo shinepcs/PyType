@@ -26,7 +26,7 @@ test("competition merges nearby ranking and online best scores without exposing 
   ]);
 });
 
-test("competition lane places the nearest lower and higher scores on opposite sides of YOU", () => {
+test("competition lane places rivals by score gap and moves an ahead rival toward YOU", () => {
   const markers = selectCompetitionMarkers([
     { playerName: "FarBehind", score: 100 },
     { playerName: "NearBehind", score: 450 },
@@ -34,12 +34,21 @@ test("competition lane places the nearest lower and higher scores on opposite si
     { playerName: "FarAhead", score: 900 },
     { playerName: "TooFar", score: 1_200 },
   ], 500);
-  assert.deepEqual(markers.map(({ playerName, relation, position }) => ({ playerName, relation, position })), [
-    { playerName: "FarBehind", relation: "behind", position: 18 },
-    { playerName: "NearBehind", relation: "behind", position: 34 },
-    { playerName: "NearAhead", relation: "ahead", position: 66 },
-    { playerName: "FarAhead", relation: "ahead", position: 82 },
+  assert.deepEqual(markers.map(({ playerName, relation }) => ({ playerName, relation })), [
+    { playerName: "FarBehind", relation: "behind" },
+    { playerName: "NearBehind", relation: "behind" },
+    { playerName: "NearAhead", relation: "ahead" },
+    { playerName: "FarAhead", relation: "ahead" },
   ]);
+  assert.ok(markers[0].position < markers[1].position);
+  assert.ok(markers[2].position < markers[3].position);
+  assert.ok(markers[1].position < 50);
+  assert.ok(markers[2].position > 50);
+
+  const early = selectCompetitionMarkers([{ playerName: "Target", score: 1_000 }], 100, { perSide: 1 })[0];
+  const caughtUp = selectCompetitionMarkers([{ playerName: "Target", score: 1_000 }], 900, { perSide: 1 })[0];
+  assert.ok(caughtUp.position < early.position);
+  assert.ok(caughtUp.position > 50);
 });
 
 test("overtake detection fires only for rivals crossed by the latest score increase", () => {

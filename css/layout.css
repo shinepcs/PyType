@@ -326,6 +326,15 @@
   margin-top: 1.25rem;
 }
 
+#screen-game[data-beginner-guide="true"] .game-playfield {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+#screen-game[data-beginner-guide="true"] .problem-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+}
+
 .danger-label {
   display: flex;
   justify-content: space-between;

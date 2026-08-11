@@ -35,8 +35,8 @@ test("content bundle validates required coverage", () => {
   assert.equal(report.stats.skills, REQUIRED_SKILL_IDS.length);
   assert.equal(report.stats.staticCount, 66);
   assert.equal(report.stats.templateCount, 27);
-  assert.equal(report.stats.generatedEquivalentCount, 108);
-  assert.equal(report.stats.totalEquivalentCount, 174);
+  assert.equal(report.stats.generatedEquivalentCount, 324);
+  assert.equal(report.stats.totalEquivalentCount, 390);
   assert.ok(report.stats.byLevel[1] >= 50);
   assert.ok(report.stats.byLevel[2] >= 50);
   REQUIRED_SKILL_IDS.forEach((skill) => assert.ok(report.stats.bySkill[skill] >= 6, skill));
@@ -78,11 +78,11 @@ test("repository expands certified template variants into a unique deterministic
   const second = repository.getAll({ seed: "quick-session-42" });
   const other = repository.getAll({ seed: "quick-session-43" });
 
-  assert.equal(first.length, 174);
+  assert.equal(first.length, 390);
   assert.deepEqual(first, second);
   assert.equal(new Set(first.map((question) => question.instanceId)).size, first.length);
   assert.notDeepEqual(first.map((question) => question.instanceId), other.map((question) => question.instanceId));
-  assert.equal(repository.getAll({ seed: 1, skills: ["range"], levels: [2] }).length, 5);
+  assert.equal(repository.getAll({ seed: 1, skills: ["range"], levels: [2] }).length, 13);
   assert.equal(repository.getById("print.copy.001").answer, "print(\"Hello, Python!\")");
   assert.equal(repository.getById("missing.question"), null);
 });
@@ -146,7 +146,7 @@ test("production repository excludes an invalid item while strict validation sti
   });
   assert.ok(recordedIssues.some((issue) => issue.path.startsWith("questionsDocument.questions[0]")));
   assert.equal(repository.getAll({ seed: "production-salvage" }).some((item) => item.sourceId === invalidId), false);
-  assert.equal(repository.getAll({ seed: "production-salvage" }).length, 173);
+  assert.equal(repository.getAll({ seed: "production-salvage" }).length, 389);
 });
 
 test("production recovery rejects structural, version, or unplayable bulk corruption", () => {
@@ -154,9 +154,10 @@ test("production recovery rejects structural, version, or unplayable bulk corrup
   wrongVersion.skills.contentVersion = "0.9.0";
   assert.throws(() => createQuestionRepository(wrongVersion, { strict: false }), /content version/u);
 
-  const noStaticQuestions = clone(bundle);
-  noStaticQuestions.questions.questions = [];
-  assert.throws(() => createQuestionRepository(noStaticQuestions, { strict: false }), /playable MVP minimum/u);
+  const noPlayableSources = clone(bundle);
+  noPlayableSources.questions.questions = [];
+  noPlayableSources.templates.templates = [];
+  assert.throws(() => createQuestionRepository(noPlayableSources, { strict: false }), /No valid learning content/u);
 
   const noLevel2 = clone(bundle);
   for (const question of noLevel2.questions.questions) {
@@ -233,7 +234,7 @@ function parseSimplePythonList(text) {
 test("all random example outputs are possible for their declared operation", () => {
   const repository = createQuestionRepository(bundle);
   const examples = repository.getAll({ seed: "example-audit" }).filter((question) => question.outputMode === "example");
-  assert.equal(examples.length, 12);
+  assert.equal(examples.length, 28);
 
   for (const question of examples) {
     const completedCode = question.type === "fill"

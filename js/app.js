@@ -1,4 +1,5 @@
 import { SUPABASE_CONFIG } from "./config.js";
+import { loadBeginnerGuideQuestions } from "./content/beginner-guide.js";
 import { loadQuestionRepository } from "./content/question-repository.js";
 import { GameState } from "./core/game-state.js";
 import { createEmptySkillMastery, getWeakSkills, updateSkillMastery } from "./core/mastery.js";
@@ -164,6 +165,7 @@ class PythonTypingSurvivalApp {
     this.presence = createPresenceService({ client: this.supabase });
 
     this.repository = null;
+    this.beginnerGuideQuestions = [];
     this.storageData = null;
     this.activeSession = null;
     this.frameId = null;
@@ -201,15 +203,19 @@ class PythonTypingSurvivalApp {
 
   async loadContent() {
     try {
-      this.repository = await loadQuestionRepository({
-        baseUrl: "./data/",
-        strict: false,
-        onIssues: (issues) => console.warn(`콘텐츠 검증에서 ${issues.length}개 문제를 제외했습니다.`),
-      });
+      [this.repository, this.beginnerGuideQuestions] = await Promise.all([
+        loadQuestionRepository({
+          baseUrl: "./data/",
+          strict: false,
+          onIssues: (issues) => console.warn(`콘텐츠 검증에서 ${issues.length}개 문제를 제외했습니다.`),
+        }),
+        loadBeginnerGuideQuestions({ baseUrl: "./data/" }),
+      ]);
       this.renderPracticeSkills();
       return true;
     } catch {
       this.repository = null;
+      this.beginnerGuideQuestions = [];
       this.showRecoverableError("문제 데이터 또는 템플릿을 불러오지 못했습니다. 연결을 확인하고 다시 시도하세요.");
       return false;
     }
@@ -392,7 +398,7 @@ class PythonTypingSurvivalApp {
       ? this.mergeSharedPracticeQuestions(officialPool, skills)
       : officialPool;
     if (options.sampleLogic) pool = pool.filter((question) => question.tags.includes("sample-logic"));
-    if (options.beginnerGuide) pool = pool.filter((question) => question.tags.includes("beginner-guide"));
+    if (options.beginnerGuide) pool = [...this.beginnerGuideQuestions];
     this.storageData = this.storage.read();
     const questionStats = collectQuestionStats(
       this.storageData.history,
@@ -419,11 +425,15 @@ class PythonTypingSurvivalApp {
         .map((sourceId) => pool.find((question) => question.sourceId === sourceId))
         .filter(Boolean);
       plannedQuestions = insertDailyReviewQuestions(baseQuestions, reviewQuestions, 10);
+    } else if (options.beginnerGuide) {
+      plannedQuestions = createSeededRandom(`${seed}:beginner-guide`).shuffle(pool);
     }
     const random = createSeededRandom(`${seed}:session`);
     const selector = new QuestionSelector(pool, { random });
 
-    const maxQuestions = mode === GAME_MODES.DAILY
+    const maxQuestions = options.beginnerGuide
+      ? this.beginnerGuideQuestions.length
+      : mode === GAME_MODES.DAILY
       ? 30
       : mode === GAME_MODES.PRACTICE
         ? PRACTICE_QUESTION_LIMIT
@@ -485,8 +495,9 @@ class PythonTypingSurvivalApp {
       [GAME_MODES.PRACTICE]: "PRACTICE",
     };
     const modeLabel = options.beginnerGuide
-      ? "BEGINNER GUIDE"
+      ? "BEGINNER GUIDE · 50 PRACTICAL SNIPPETS"
       : options.sampleLogic ? "SAMPLE LOGIC" : labels[mode];
+    $("#screen-game").dataset.beginnerGuide = String(Boolean(options.beginnerGuide));
     $("#game-mode-label").textContent = modeLabel;
     $("#skip-button").hidden = mode !== GAME_MODES.PRACTICE;
     $("#ready-mode").textContent = modeLabel;
@@ -591,12 +602,13 @@ class PythonTypingSurvivalApp {
     const question = this.applyLevel2Prerequisite(selected, session);
     if (!session.game.startProblem(question, now)) return;
     session.expected = renderQuestion(question, { timed: session.game.remainingMs !== null });
+    session.concealPending = question.level === 2 || question.tags?.includes("beginner-guide") === true;
     session.problemToken = session.game.problemToken;
     const input = $("#typing-input");
     input.value = "";
     input.disabled = false;
     $("#feedback-message").textContent = "";
-    renderTypingFeedback(session.expected, "", { concealPending: question.level === 2 });
+    renderTypingFeedback(session.expected, "", { concealPending: session.concealPending });
     requestAnimationFrame(() => input.focus({ preventScroll: true }));
   }
 
@@ -604,6 +616,17 @@ class PythonTypingSurvivalApp {
     const session = this.activeSession;
     if (!session || session.game.phase !== "playing" || $("#typing-input").disabled || this.isComposing) return;
     if (event.key === "Tab" && (event.shiftKey || session.game.currentQuestion?.level === 2)) return;
+    if (event.key === "Enter") {
+      const problemResult = session.game.submitIncorrectProblem(
+        performance.now(),
+        session.problemToken,
+      );
+      if (problemResult) {
+        event.preventDefault();
+        this.processTypingOutcome({ submittedIncorrect: true, problemResult });
+        return;
+      }
+    }
     const printable = event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
     const handled = printable || ["Backspace", "Enter", "Tab"].includes(event.key);
     if (!handled) return;
@@ -644,7 +667,9 @@ class PythonTypingSurvivalApp {
     );
     $("#typing-input").value = inputValue;
     renderTypingFeedback(feedbackAnswer, inputValue, {
-      concealPending: snapshot.currentQuestion?.level === 2 || outcome?.problemResult?.level === 2,
+      concealPending: session.concealPending
+        || snapshot.currentQuestion?.level === 2
+        || outcome?.problemResult?.level === 2,
     });
     this.renderActiveHud(snapshot);
 
@@ -660,6 +685,14 @@ class PythonTypingSurvivalApp {
     }
     if (outcome?.problemResult) {
       $("#typing-input").disabled = true;
+      if (outcome.submittedIncorrect || outcome.problemResult.submittedIncorrect) {
+        this.showTypingFeedback("MISS · 오답으로 기록했습니다. 다음 문제로 이동합니다.", "warning");
+        announce("오답으로 기록했습니다. 다음 문제로 이동합니다.", { clearAfterMs: 700 });
+        if (session.game.phase === "playing") {
+          session.pendingNextAt = performance.now() + NEXT_QUESTION_DELAY_MS;
+        }
+        return;
+      }
       const clean = outcome.problemResult.cleanSolve;
       if (outcome.problemResult.questionId.startsWith("preview.")) {
         session.level2Prerequisites = recordLevel2Prerequisite(

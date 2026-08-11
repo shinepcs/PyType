@@ -401,12 +401,25 @@ export class GameState {
     return result;
   }
 
+  submitIncorrectProblem(timestamp, problemToken) {
+    const now = this._time(timestamp);
+    this.tick(now);
+    if (this.phase !== "playing" || !this.currentQuestion || !this.typingEngine) return false;
+    if (problemToken !== undefined && problemToken !== this.problemToken) return false;
+    if (!this.typingEngine.shouldSubmitIncorrectOnEnter()) return false;
+    return this._recordFailedProblem(now, { submittedIncorrect: true });
+  }
+
   skipCurrentProblem(timestamp) {
     const now = this._time(timestamp);
     this.tick(now);
     if (!this.config.allowSkip || this.phase !== "playing" || !this.currentQuestion) {
       return false;
     }
+    return this._recordFailedProblem(now, { skipped: true });
+  }
+
+  _recordFailedProblem(now, failure) {
     const question = this.currentQuestion;
     const state = this.typingEngine.snapshot(now);
     const result = Object.freeze({
@@ -421,7 +434,7 @@ export class GameState {
       cleanSolve: false,
       slow: this.currentProblemElapsedMs > question.targetSeconds * 1_000,
       completedAt: safeIso(this.wallClock.now()),
-      skipped: true,
+      ...failure,
       problemScore: 0,
     });
     this.correctKeystrokes += state.correctKeystrokes;
