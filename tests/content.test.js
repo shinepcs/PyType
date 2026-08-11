@@ -33,10 +33,10 @@ test("content bundle validates required coverage", () => {
   assert.equal(report.valid, true, report.issues.map((item) => `${item.path}: ${item.message}`).join("\n"));
   assert.equal(report.stats.contentVersion, "1.0.0");
   assert.equal(report.stats.skills, REQUIRED_SKILL_IDS.length);
-  assert.equal(report.stats.staticCount, 54);
+  assert.equal(report.stats.staticCount, 60);
   assert.equal(report.stats.templateCount, 27);
   assert.equal(report.stats.generatedEquivalentCount, 108);
-  assert.equal(report.stats.totalEquivalentCount, 162);
+  assert.equal(report.stats.totalEquivalentCount, 168);
   assert.ok(report.stats.byLevel[1] >= 50);
   assert.ok(report.stats.byLevel[2] >= 50);
   REQUIRED_SKILL_IDS.forEach((skill) => assert.ok(report.stats.bySkill[skill] >= 6, skill));
@@ -78,7 +78,7 @@ test("repository expands certified template variants into a unique deterministic
   const second = repository.getAll({ seed: "quick-session-42" });
   const other = repository.getAll({ seed: "quick-session-43" });
 
-  assert.equal(first.length, 162);
+  assert.equal(first.length, 168);
   assert.deepEqual(first, second);
   assert.equal(new Set(first.map((question) => question.instanceId)).size, first.length);
   assert.notDeepEqual(first.map((question) => question.instanceId), other.map((question) => question.instanceId));
@@ -146,7 +146,7 @@ test("production repository excludes an invalid item while strict validation sti
   });
   assert.ok(recordedIssues.some((issue) => issue.path.startsWith("questionsDocument.questions[0]")));
   assert.equal(repository.getAll({ seed: "production-salvage" }).some((item) => item.sourceId === invalidId), false);
-  assert.equal(repository.getAll({ seed: "production-salvage" }).length, 161);
+  assert.equal(repository.getAll({ seed: "production-salvage" }).length, 167);
 });
 
 test("production recovery rejects structural, version, or unplayable bulk corruption", () => {

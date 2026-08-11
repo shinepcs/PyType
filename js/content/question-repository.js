@@ -192,6 +192,10 @@ export class QuestionRepository {
     return source ? cloneJson(source) : null;
   }
 
+  getStaticSources() {
+    return this.questions.map((question) => cloneJson(question));
+  }
+
   createTemplateInstance(templateOrId, seed = "default") {
     const template = typeof templateOrId === "string" ? this.templateMap.get(templateOrId) : templateOrId;
     if (!template) {

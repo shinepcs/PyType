@@ -163,6 +163,63 @@
   margin-top: -4.2rem;
 }
 
+.online-players {
+  grid-column: 1 / -1;
+  margin-top: -2.5rem;
+}
+
+.questions-screen {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.question-editor-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.7fr) minmax(0, 1.3fr);
+  gap: 1rem;
+}
+
+.question-source-panel,
+.question-editor-form {
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.question-editor-form,
+.question-editor-form label,
+#level-two-fields {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.question-editor-form {
+  gap: 1rem;
+}
+
+.editor-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.7fr;
+  gap: 0.75rem;
+}
+
+.editor-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.practice-rivals {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.4fr) minmax(0, 1.6fr);
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.practice-rivals[hidden] {
+  display: none;
+}
+
 .screen-heading {
   display: flex;
   align-items: flex-start;
@@ -275,7 +332,7 @@
 
 .problem-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   margin-top: 1rem;
 }
@@ -423,6 +480,11 @@
     grid-template-columns: 1fr;
   }
 
+  .question-editor-layout,
+  .practice-rivals {
+    grid-template-columns: 1fr;
+  }
+
   .battle-lane {
     height: 76px;
   }
@@ -491,6 +553,10 @@
   .setup-options,
   .settings-form > label,
   .switch-row {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-row {
     grid-template-columns: 1fr;
   }
 

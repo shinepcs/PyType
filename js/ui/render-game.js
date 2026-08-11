@@ -24,10 +24,10 @@ export function renderQuestion(question, { root = document } = {}) {
   const isFill = question.level === 2 || question.type === "fill";
   setText(byId("question-level", root), `LEVEL ${question.level}`);
   setText(byId("question-skill", root), String(question.skill).toUpperCase());
-  setText(byId("question-target", root), `TARGET ${question.targetSeconds}s`);
+  setText(byId("question-target", root), isFill ? "TIME PAUSED · +3 / -2" : `TARGET ${question.targetSeconds}s`);
   setText(
     byId("question-label", root),
-    isFill ? "코드와 OUTPUT을 보고 빈칸에 들어갈 답을 입력하세요." : "보이는 코드를 공백과 줄바꿈까지 그대로 입력하세요.",
+    isFill ? "정답 힌트 없이 코드와 OUTPUT만 보고 빈칸의 답을 입력하세요." : "보이는 코드를 공백과 줄바꿈까지 그대로 입력하세요.",
   );
   renderCodeWithBlank(byId("question-code", root), question.code, isFill);
 
@@ -40,16 +40,16 @@ export function renderQuestion(question, { root = document } = {}) {
   setText(
     byId("typing-help", root),
     isFill
-      ? "붙여넣기는 사용할 수 없습니다. Tab 또는 Shift+Tab으로 입력 영역을 벗어날 수 있습니다."
+      ? "시간 정지 · 정답 +3초 · 첫 오타 -2초 · Tab으로 입력 영역을 벗어날 수 있습니다."
       : "붙여넣기는 사용할 수 없습니다. Tab은 공백 4칸, Shift+Tab은 이전 조작으로 이동합니다.",
   );
   return isFill ? question.answer : question.code;
 }
 
-export function renderTypingFeedback(expected, actual, { root = document } = {}) {
+export function renderTypingFeedback(expected, actual, { root = document, concealPending = false } = {}) {
   const node = byId("typing-feedback", root);
   node.replaceChildren();
-  const max = Math.max(expected.length, actual.length + 1);
+  const max = concealPending ? actual.length : Math.max(expected.length, actual.length + 1);
   for (let index = 0; index < max; index += 1) {
     const span = document.createElement("span");
     const expectedCharacter = expected[index];

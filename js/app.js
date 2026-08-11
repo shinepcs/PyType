@@ -3,6 +3,7 @@ import { loadQuestionRepository } from "./content/question-repository.js";
 import { GameState } from "./core/game-state.js";
 import { createEmptySkillMastery, getWeakSkills, updateSkillMastery } from "./core/mastery.js";
 import { QuestionSelector } from "./core/question-selector.js";
+import { createLevel2PrerequisiteQuestion, level2PrerequisiteKey, recordLevel2Prerequisite } from "./core/level2-progression.js";
 import {
   createDailySeed,
   GAME_MODES,
@@ -11,6 +12,8 @@ import {
   SessionQueue,
 } from "./core/session.js";
 import { createRankingService } from "./services/ranking.js";
+import { createCommunityContentService } from "./services/community-content.js";
+import { createPresenceService } from "./services/presence.js";
 import { createStorageRepository } from "./services/storage.js";
 import { createSupabaseClient } from "./services/supabase-client.js";
 import { announce, applyAccessibilitySettings } from "./ui/accessibility.js";
@@ -18,13 +21,17 @@ import { renderHud, renderQuestion, renderTypingFeedback, triggerAttack } from "
 import { renderProgress } from "./ui/render-progress.js";
 import { renderRankingState, selectRankingTab } from "./ui/render-ranking.js";
 import { renderRankingSubmission, renderResult } from "./ui/render-results.js";
+import { renderPracticeRivals } from "./ui/render-practice-rivals.js";
+import { renderOnlinePlayers } from "./ui/render-online-players.js";
+import { fillQuestionForm, renderQuestionSourceOptions, updateQuestionFormLevel } from "./ui/render-question-editor.js";
 import { createScreenRouter } from "./ui/router.js";
 import { createSeededRandom } from "./utils/random.js";
 import { createSessionId, validateNickname } from "./utils/validation.js";
 
-const CLIENT_VERSION = "1.0.0";
+const CLIENT_VERSION = "1.1.0";
 const NEXT_QUESTION_DELAY_MS = 380;
 const PRACTICE_QUESTION_LIMIT = 30;
+const PRESENCE_REFRESH_MS = 30_000;
 
 function $(selector, root = document) {
   return root.querySelector(selector);
@@ -146,6 +153,8 @@ class PythonTypingSurvivalApp {
       client: this.supabase,
       storageRepository: this.storage,
     });
+    this.communityContent = createCommunityContentService({ client: this.supabase });
+    this.presence = createPresenceService({ client: this.supabase });
 
     this.repository = null;
     this.storageData = null;
@@ -160,6 +169,9 @@ class PythonTypingSurvivalApp {
     this.isComposing = false;
     this.pendingStart = null;
     this.hasBoundEvents = false;
+    this.sharedQuestions = [];
+    this.sharedContentRequest = null;
+    this.presenceTimer = null;
   }
 
   async initialize() {
@@ -175,6 +187,8 @@ class PythonTypingSurvivalApp {
       window.setTimeout(() => $("#nickname-dialog").showModal(), 0);
     }
     this.connectRankingInBackground();
+    this.refreshSharedQuestions();
+    this.startPresenceLoop();
   }
 
   async loadContent() {
@@ -202,12 +216,21 @@ class PythonTypingSurvivalApp {
     $all("[data-nav-home]").forEach((button) => button.addEventListener("click", () => this.goHome()));
     $("#start-quick").addEventListener("click", () => this.requestSessionStart(GAME_MODES.QUICK));
     $("#start-daily").addEventListener("click", () => this.requestSessionStart(GAME_MODES.DAILY));
+    $("#start-samples").addEventListener("click", () => this.requestSessionStart(
+      GAME_MODES.PRACTICE,
+      { sampleLogic: true, timed: true },
+    ));
     $("#open-practice").addEventListener("click", () => this.openPractice());
     $("#start-practice").addEventListener("click", () => this.startPractice());
     $("#open-ranking").addEventListener("click", () => this.openRanking());
     $("#result-ranking").addEventListener("click", () => this.openRanking());
     $("#open-progress").addEventListener("click", () => this.openProgress());
     $("#open-settings").addEventListener("click", () => this.openSettings());
+    $("#open-questions").addEventListener("click", () => this.openQuestionEditor());
+    $("#question-source").addEventListener("change", () => this.selectQuestionSource());
+    $("#question-level-input").addEventListener("change", () => updateQuestionFormLevel());
+    $("#new-question").addEventListener("click", () => this.resetQuestionForm());
+    $("#question-editor-form").addEventListener("submit", (event) => this.saveSharedQuestion(event));
     $("#play-again").addEventListener("click", () => this.playAgain());
     $("#pause-button").addEventListener("click", () => this.pauseManually());
     $("#skip-button").addEventListener("click", () => this.skipPracticeQuestion());
@@ -293,6 +316,7 @@ class PythonTypingSurvivalApp {
       this.pendingStart = null;
       this.startSession(pending.mode, pending.options);
     }
+    this.refreshPresence();
   }
 
   renderPracticeSkills() {
@@ -322,8 +346,9 @@ class PythonTypingSurvivalApp {
     $("#start-practice").disabled = $all("#practice-skills input:checked").length === 0;
   }
 
-  openPractice() {
+  async openPractice() {
     if (!this.repository) return this.showRecoverableError("콘텐츠를 먼저 불러와야 합니다.");
+    await this.refreshSharedQuestions();
     this.router.show("practice");
   }
 
@@ -346,12 +371,16 @@ class PythonTypingSurvivalApp {
 
   startSession(mode, options = {}) {
     this.cancelFrame();
-    const contentVersion = this.repository.contentVersion;
+    const contentVersion = this.getCompetitiveContentVersion();
     const seed = mode === GAME_MODES.DAILY
       ? createDailySeed(new Date(), contentVersion)
       : createSessionId();
     const skills = Array.isArray(options.skills) && options.skills.length > 0 ? options.skills : undefined;
-    const pool = this.repository.getAll({ seed, skills });
+    const officialPool = this.repository.getAll({ seed, skills });
+    let pool = mode === GAME_MODES.PRACTICE
+      ? this.mergeSharedPracticeQuestions(officialPool, skills)
+      : officialPool;
+    if (options.sampleLogic) pool = pool.filter((question) => question.tags.includes("sample-logic"));
     this.storageData = this.storage.read();
     const questionStats = collectQuestionStats(
       this.storageData.history,
@@ -425,29 +454,35 @@ class PythonTypingSurvivalApp {
       problemToken: 0,
       pendingNextAt: null,
       finishHandled: false,
+      rivals: { kind: mode === GAME_MODES.PRACTICE ? "loading" : "hidden", entries: [] },
+      lastRivalScore: null,
+      level2Prerequisites: { ...(this.storageData.progress.level2Prerequisites ?? {}) },
     };
     this.lastSessionSetup = { mode, options: { ...options } };
     this.finishDestination = "result";
-    this.prepareGameScreen(mode);
+    this.prepareGameScreen(mode, options);
     this.router.show("game", { focus: false });
     this.frameId = requestAnimationFrame((time) => this.frame(time));
+    if (mode === GAME_MODES.PRACTICE) this.loadPracticeRivals(game.sessionId);
   }
 
-  prepareGameScreen(mode) {
+  prepareGameScreen(mode, options = {}) {
     const labels = {
       [GAME_MODES.QUICK]: "QUICK PLAY",
       [GAME_MODES.DAILY]: "DAILY TRAINING",
       [GAME_MODES.PRACTICE]: "PRACTICE",
     };
-    $("#game-mode-label").textContent = labels[mode];
+    const modeLabel = options.sampleLogic ? "SAMPLE LOGIC" : labels[mode];
+    $("#game-mode-label").textContent = modeLabel;
     $("#skip-button").hidden = mode !== GAME_MODES.PRACTICE;
-    $("#ready-mode").textContent = labels[mode];
+    $("#ready-mode").textContent = modeLabel;
     $("#ready-count").textContent = mode === GAME_MODES.PRACTICE ? "GO" : "3";
     $("#ready-overlay").hidden = false;
     $("#typing-input").disabled = true;
     $("#typing-input").value = "";
     $("#feedback-message").textContent = "";
     renderTypingFeedback("", "");
+    renderPracticeRivals({ kind: mode === GAME_MODES.PRACTICE ? "loading" : "hidden", score: 0 });
     this.renderActiveHud();
   }
 
@@ -497,20 +532,38 @@ class PythonTypingSurvivalApp {
       maxProblems: this.activeSession.game.maxProblems,
       remainingMs: snapshot.remainingMs,
     }, { formatTime: formatClock });
+    if (this.activeSession.mode === GAME_MODES.PRACTICE
+        && this.activeSession.lastRivalScore !== Number(snapshot.rawScore ?? 0)) {
+      this.activeSession.lastRivalScore = Number(snapshot.rawScore ?? 0);
+      renderPracticeRivals({
+        ...this.activeSession.rivals,
+        score: this.activeSession.lastRivalScore,
+      });
+    }
+  }
+
+  applyLevel2Prerequisite(question, session) {
+    const key = level2PrerequisiteKey(question);
+    return createLevel2PrerequisiteQuestion(question, session.level2Prerequisites[key]);
   }
 
   startNextQuestion(now) {
     const session = this.activeSession;
     if (!session || session.game.phase !== "playing") return;
-    const question = session.game.startNextProblem(now, { skills: session.options.skills });
-    if (!question) return;
+    const selected = session.game.sessionQueue.next({ skills: session.options.skills });
+    if (!selected) {
+      session.game.end("completed", now);
+      return;
+    }
+    const question = this.applyLevel2Prerequisite(selected, session);
+    if (!session.game.startProblem(question, now)) return;
     session.expected = renderQuestion(question);
     session.problemToken = session.game.problemToken;
     const input = $("#typing-input");
     input.value = "";
     input.disabled = false;
     $("#feedback-message").textContent = "";
-    renderTypingFeedback(session.expected, "");
+    renderTypingFeedback(session.expected, "", { concealPending: question.level === 2 });
     requestAnimationFrame(() => input.focus({ preventScroll: true }));
   }
 
@@ -557,11 +610,15 @@ class PythonTypingSurvivalApp {
       session.expected,
     );
     $("#typing-input").value = inputValue;
-    renderTypingFeedback(feedbackAnswer, inputValue);
+    renderTypingFeedback(feedbackAnswer, inputValue, {
+      concealPending: snapshot.currentQuestion?.level === 2 || outcome?.problemResult?.level === 2,
+    });
     this.renderActiveHud(snapshot);
 
     if (outcome?.errors > 0) {
-      this.showTypingFeedback(outcome.firstError ? "TYPO · COMBO RESET" : "TYPO · 지우고 고치세요");
+      this.showTypingFeedback(outcome.timeAdjustmentMs < 0
+        ? "TYPO · TIME -2s · COMBO RESET"
+        : outcome.firstError ? "TYPO · COMBO RESET" : "TYPO · 지우고 고치세요");
       announce("오타. 지우고 다시 입력하세요.", { clearAfterMs: 700 });
     }
     if (outcome?.ended) {
@@ -571,7 +628,15 @@ class PythonTypingSurvivalApp {
     if (outcome?.problemResult) {
       $("#typing-input").disabled = true;
       const clean = outcome.problemResult.cleanSolve;
-      this.showTypingFeedback(clean ? "CLEAN HIT" : "CORRECTED HIT", clean ? "success" : "warning");
+      if (outcome.problemResult.questionId.startsWith("preview.")) {
+        session.level2Prerequisites = recordLevel2Prerequisite(
+          outcome.problemResult,
+          session.level2Prerequisites,
+        );
+      }
+      this.showTypingFeedback(outcome.problemResult.level === 2 && outcome.timeAdjustmentMs > 0
+        ? `${clean ? "CLEAN" : "CORRECTED"} HIT · TIME +3s`
+        : clean ? "CLEAN HIT" : "CORRECTED HIT", clean ? "success" : "warning");
       triggerAttack({ clean });
       announce(clean ? "정확한 입력입니다." : "수정 후 완료했습니다.", { clearAfterMs: 700 });
       if (session.game.phase === "playing") {
@@ -708,12 +773,14 @@ class PythonTypingSurvivalApp {
 
     const saved = this.storage.update((state) => {
       state.progress.skills = updatedSkills;
+      state.progress.level2Prerequisites = { ...session.level2Prerequisites };
       state.history.push(record);
       if (isPersonalBest) state.personalBest[result.gameMode] = record;
     });
     this.storageData = saved.ok ? this.storage.read() : before;
     this.lastSessionRecord = record;
     this.activeSession = null;
+    renderPracticeRivals({ kind: "hidden", score: 0 });
 
     if (this.finishDestination === "home") {
       this.router.show("home");
@@ -745,7 +812,7 @@ class PythonTypingSurvivalApp {
     this.updateNetworkStatus("online");
     const rankResult = await this.ranking.getMyRank({
       sessionId: record.sessionId,
-      contentVersion: this.repository.contentVersion,
+      contentVersion: record.contentVersion,
     });
     renderRankingSubmission({
       kind: outcome.duplicate ? "duplicate" : "success",
@@ -756,6 +823,193 @@ class PythonTypingSurvivalApp {
   playAgain() {
     if (!this.lastSessionSetup) return this.requestSessionStart(GAME_MODES.QUICK);
     this.requestSessionStart(this.lastSessionSetup.mode, this.lastSessionSetup.options);
+  }
+
+  getSkillIds() {
+    return new Set(this.repository?.getSkills().map((skill) => skill.id) ?? []);
+  }
+
+  getCompetitiveContentVersion() {
+    return `${this.repository.contentVersion}-r2`;
+  }
+
+  async refreshSharedQuestions() {
+    if (!this.repository) return { ok: false, status: "invalid" };
+    if (this.sharedContentRequest) return this.sharedContentRequest;
+    this.sharedContentRequest = this.communityContent.getQuestions({
+      contentVersion: this.repository.contentVersion,
+      skillIds: this.getSkillIds(),
+    });
+    try {
+      const result = await this.sharedContentRequest;
+      if (result.ok) this.sharedQuestions = [...result.questions];
+      if (this.router.current === "questions") this.renderQuestionEditorSources();
+      return result;
+    } finally {
+      this.sharedContentRequest = null;
+    }
+  }
+
+  mergeSharedPracticeQuestions(officialPool, selectedSkills) {
+    const skillFilter = selectedSkills ? new Set(selectedSkills) : null;
+    const overrides = new Map(this.sharedQuestions.map((question) => [question.id, question]));
+    const result = officialPool.map((question) => {
+      const shared = overrides.get(question.sourceId);
+      if (!shared) return question;
+      overrides.delete(question.sourceId);
+      return this.toRuntimeSharedQuestion(shared);
+    });
+    for (const question of overrides.values()) {
+      if (!skillFilter || skillFilter.has(question.skill)) result.push(this.toRuntimeSharedQuestion(question));
+    }
+    return result;
+  }
+
+  toRuntimeSharedQuestion(question) {
+    return Object.freeze({
+      id: question.id,
+      instanceId: question.id,
+      sourceId: question.id,
+      seed: null,
+      contentVersion: question.contentVersion,
+      level: question.level,
+      type: question.type,
+      skill: question.skill,
+      difficulty: question.difficulty,
+      code: question.code,
+      output: question.output,
+      outputMode: question.outputMode,
+      answer: question.answer,
+      acceptedAnswers: Object.freeze([...question.acceptedAnswers]),
+      targetSeconds: question.targetSeconds,
+      tags: Object.freeze([...question.tags]),
+    });
+  }
+
+  async loadPracticeRivals(sessionId) {
+    const result = await this.ranking.getNearbyRanking({
+      contentVersion: this.getCompetitiveContentVersion(),
+      radius: 5,
+    });
+    const session = this.activeSession;
+    if (!session || session.game.sessionId !== sessionId || session.mode !== GAME_MODES.PRACTICE) return;
+    session.rivals = result.ok
+      ? { kind: result.entries.length > 0 ? "ready" : "empty", entries: result.entries }
+      : { kind: result.status === "offline" ? "offline" : "error", entries: [] };
+    session.lastRivalScore = null;
+    this.renderActiveHud();
+  }
+
+  async openQuestionEditor() {
+    if (!this.repository) return this.showRecoverableError("콘텐츠를 먼저 불러와야 합니다.");
+    const skillSelect = $("#question-skill-input");
+    if (skillSelect.options.length === 0) {
+      for (const skill of this.repository.getSkills()) {
+        const option = document.createElement("option");
+        option.value = skill.id;
+        option.textContent = `${skill.label} · ${skill.id}`;
+        skillSelect.append(option);
+      }
+    }
+    this.router.show("questions");
+    $("#question-editor-message").textContent = "공유 문제를 불러오는 중입니다…";
+    const result = await this.refreshSharedQuestions();
+    $("#question-editor-message").textContent = result.ok
+      ? ""
+      : "온라인 공유 문제를 불러오지 못했습니다. 연결을 확인하세요.";
+    this.renderQuestionEditorSources();
+  }
+
+  getEditableQuestionMap() {
+    const sources = new Map(this.repository.getStaticSources().map((question) => [question.id, question]));
+    for (const question of this.sharedQuestions) sources.set(question.id, question);
+    return sources;
+  }
+
+  renderQuestionEditorSources() {
+    const sources = [...this.getEditableQuestionMap().values()]
+      .sort((left, right) => left.skill.localeCompare(right.skill) || left.id.localeCompare(right.id));
+    renderQuestionSourceOptions(sources, new Set(this.sharedQuestions.map((question) => question.id)));
+    this.resetQuestionForm();
+  }
+
+  selectQuestionSource() {
+    const id = $("#question-source").value;
+    const question = id ? this.getEditableQuestionMap().get(id) : null;
+    fillQuestionForm(question);
+    updateQuestionFormLevel();
+    $("#question-editor-message").textContent = question
+      ? `${id}의 새 revision을 작성합니다.`
+      : "새 공유 문제를 작성합니다.";
+  }
+
+  resetQuestionForm() {
+    $("#question-source").value = "";
+    fillQuestionForm(null);
+    updateQuestionFormLevel();
+    $("#question-editor-message").textContent = "새 공유 문제를 작성합니다.";
+  }
+
+  async saveSharedQuestion(event) {
+    event.preventDefault();
+    const message = $("#question-editor-message");
+    const level = Number($("#question-level-input").value);
+    const code = $("#question-code-input").value.replaceAll("\r\n", "\n");
+    const answer = level === 1 ? code : $("#question-answer-input").value;
+    const question = {
+      level,
+      type: level === 1 ? "copy" : "fill",
+      skill: $("#question-skill-input").value,
+      difficulty: 1,
+      code,
+      output: level === 1 ? "" : $("#question-output-input").value.replaceAll("\r\n", "\n"),
+      outputMode: "exact",
+      answer,
+      acceptedAnswers: [answer],
+      targetSeconds: Number($("#question-target-input").value),
+      tags: ["community"],
+    };
+    message.textContent = "검증 후 모든 사용자에게 저장하는 중입니다…";
+    const result = await this.communityContent.saveQuestion({
+      questionId: $("#question-source").value || null,
+      question,
+      contentVersion: this.repository.contentVersion,
+      skillIds: this.getSkillIds(),
+    });
+    if (!result.ok) {
+      message.textContent = result.status === "invalid"
+        ? "형식을 확인하세요. Level 1은 1~3줄, Level 2는 _____ 한 곳과 OUTPUT이 필요합니다."
+        : result.status === "offline"
+          ? "오프라인에서는 전역 저장할 수 없습니다. Practice는 계속 사용할 수 있습니다."
+          : "저장하지 못했습니다. 잠시 기다린 뒤 다시 시도하세요.";
+      return;
+    }
+    await this.refreshSharedQuestions();
+    this.renderQuestionEditorSources();
+    $("#question-source").value = result.questionId;
+    this.selectQuestionSource();
+    message.textContent = "저장 완료 · 모든 사용자의 Practice에 최신 revision이 적용됩니다.";
+    announce("공유 문제를 저장했습니다.");
+  }
+
+  startPresenceLoop() {
+    if (this.presenceTimer !== null) return;
+    renderOnlinePlayers({ kind: "loading", players: [] });
+    this.refreshPresence();
+    this.presenceTimer = window.setInterval(() => this.refreshPresence(), PRESENCE_REFRESH_MS);
+  }
+
+  async refreshPresence() {
+    if (!this.repository || document.hidden || navigator.onLine === false) return;
+    const nickname = this.storage.read().profile.nickname;
+    if (nickname) await this.presence.heartbeat(nickname);
+    const result = await this.presence.getOnlinePlayers({
+      contentVersion: this.getCompetitiveContentVersion(),
+      limit: 50,
+    });
+    renderOnlinePlayers(result.ok
+      ? { kind: result.players.length > 0 ? "ready" : "empty", players: result.players }
+      : { kind: result.status === "offline" ? "offline" : "error", players: [] });
   }
 
   openProgress() {
@@ -796,6 +1050,7 @@ class PythonTypingSurvivalApp {
       this.storageData = this.storage.read();
       this.applyProfileToUi();
       announce("설정을 저장했습니다.");
+      this.refreshPresence();
     }
   }
 
@@ -832,7 +1087,7 @@ class PythonTypingSurvivalApp {
     selectRankingTab(tabName);
     renderRankingState("loading");
     const requestToken = ++this.rankingRequestToken;
-    const contentVersion = this.repository.contentVersion;
+    const contentVersion = this.getCompetitiveContentVersion();
     let response;
     if (tabName === "today") {
       response = await this.ranking.getTodayRanking({ limit: 100, contentVersion });
@@ -890,6 +1145,7 @@ class PythonTypingSurvivalApp {
       await this.supabase.ensureAnonymousSession();
       this.updateNetworkStatus("online");
       await this.ranking.retryPendingSubmissions();
+      this.refreshPresence();
     } catch {
       this.updateNetworkStatus("offline");
     }

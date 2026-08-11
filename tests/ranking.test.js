@@ -234,6 +234,24 @@ test("My Best and My Rank require authenticated RPC and support empty state", as
   assert.deepEqual(client.rpcCalls[1].options, { authenticated: true });
 });
 
+test("nearby ranking requests five neighbors and marks only the current user", async () => {
+  const client = new FakeClient();
+  client.rpcResult = [rankingRow({ is_current_user: true })];
+  const service = new RankingService({ client });
+
+  const result = await service.getNearbyRanking({ contentVersion: "1.0.0", radius: 5 });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.entries[0].isCurrentUser, true);
+  assert.deepEqual(client.rpcCalls[0], {
+    name: "get_nearby_ranking",
+    parameters: { p_content_version: "1.0.0", p_radius: 5 },
+    options: { authenticated: true },
+  });
+  const invalid = await service.getNearbyRanking({ contentVersion: "1.0.0", radius: 6 });
+  assert.equal(invalid.status, "invalid");
+});
+
 test("invalid query and malformed server data produce safe states", async () => {
   const client = new FakeClient();
   const service = new RankingService({ client });
@@ -436,10 +454,19 @@ test("SQL schema keeps table writes minimal and exposes identifier-free RPCs", a
   assert.match(sql, /create or replace function public\.get_today_ranking/i);
   assert.match(sql, /create or replace function public\.get_my_best/i);
   assert.match(sql, /create or replace function public\.get_my_rank/i);
+  assert.match(sql, /create or replace function public\.get_nearby_ranking/i);
+  assert.match(sql, /create or replace function public\.get_shared_questions/i);
+  assert.match(sql, /create or replace function public\.submit_shared_question/i);
+  assert.match(sql, /create or replace function public\.get_online_players/i);
+  assert.match(sql, /create or replace function public\.touch_online_player/i);
+  assert.match(sql, /alter table public\.shared_question_revisions enable row level security/i);
+  assert.match(sql, /alter table public\.online_players enable row level security/i);
+  assert.match(sql, /revoke all on table public\.shared_question_revisions from public, anon, authenticated/i);
+  assert.match(sql, /revoke all on table public\.online_players from public, anon, authenticated/i);
 
   const returnsSections = [...sql.matchAll(/returns table \(([^]*?)\)\s*language/gi)]
     .map((match) => match[1]);
-  assert.equal(returnsSections.length, 4);
+  assert.equal(returnsSections.length, 8);
   for (const returnedColumns of returnsSections) {
     assert.doesNotMatch(returnedColumns, /user_id|session_id/i);
   }

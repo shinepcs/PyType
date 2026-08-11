@@ -17,7 +17,7 @@ test.afterEach(async ({ page }) => {
   expect(browserErrors.get(page) ?? []).toEqual([]);
 });
 
-async function preparePage(page, { nickname = null } = {}) {
+async function preparePage(page, { nickname = null, level2Ready = false } = {}) {
   await page.clock.install({ time: new Date("2026-08-11T06:00:00.000Z") });
   await page.route("https://*.supabase.co/**", (route) => route.fulfill({
     status: 200,
@@ -44,6 +44,31 @@ async function preparePage(page, { nickname = null } = {}) {
     }
   }, { seed: SESSION_SEED, sessionId: SESSION_ID, nicknameValue: nickname });
   await page.goto("./");
+  if (level2Ready) {
+    await page.evaluate(async () => {
+      const moduleUrl = new URL("./js/content/question-repository.js", document.baseURI).href;
+      const { loadQuestionRepository } = await import(moduleUrl);
+      const progressionUrl = new URL("./js/core/level2-progression.js", document.baseURI).href;
+      const { level2PrerequisiteKey } = await import(progressionUrl);
+      const repository = await loadQuestionRepository({ baseUrl: "./data/" });
+      const state = JSON.parse(localStorage.getItem("pythonTypingSurvival:v1")) ?? {
+        schemaVersion: 1,
+        profile: { nickname: null, createdAt: new Date().toISOString() },
+        settings: { sound: false, reducedMotion: false, fontScale: 1 },
+        progress: { skills: {}, level2Prerequisites: {} },
+        history: [],
+        personalBest: { quick: null, daily: null },
+        pendingRankingSubmissions: [],
+      };
+      state.progress.level2Prerequisites = Object.fromEntries(
+        repository.getAll({ seed: "level2-ready" })
+          .filter((question) => question.level === 2)
+          .map((question) => [level2PrerequisiteKey(question), 2]),
+      );
+      localStorage.setItem("pythonTypingSurvival:v1", JSON.stringify(state));
+    });
+    await page.reload();
+  }
 }
 
 async function currentAnswer(page) {
@@ -87,7 +112,7 @@ async function advanceToNextQuestion(page, previousCode) {
 
 test("new player completes Level 1/2 Quick Play with typo, pause, persistence and time over", async ({ page }) => {
   test.setTimeout(90_000);
-  await preparePage(page);
+  await preparePage(page, { level2Ready: true });
   await expect(page.locator("#nickname-dialog")).toBeVisible();
   await page.locator("#nickname-input").fill("코드초보_1");
   await page.locator("#nickname-form button[type=submit]").click();
@@ -104,9 +129,23 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
   await expect(page.locator("#typing-input")).toHaveValue("");
 
   const encounteredLevels = new Set();
+  let verifiedLevel2Timing = false;
   let solved = 0;
   while (solved < 20 && encounteredLevels.size < 2) {
     encounteredLevels.add(await page.locator("#question-level").textContent());
+    if ((await page.locator("#question-level").textContent()) === "LEVEL 2") {
+      await expect(page.locator("#typing-feedback")).toHaveText("");
+      if (!verifiedLevel2Timing) {
+        const frozenTime = await page.locator("#hud-time").textContent();
+        await page.clock.runFor(2_000);
+        await expect(page.locator("#hud-time")).toHaveText(frozenTime);
+        await page.locator("#typing-input").focus();
+        await page.keyboard.insertText("!");
+        await expect(page.locator("#feedback-message")).toContainText("TIME -2s");
+        await page.keyboard.press("Backspace");
+        verifiedLevel2Timing = true;
+      }
+    }
     const code = await page.locator("#question-code").textContent();
     const answer = await currentAnswer(page);
     if (solved === 0) {
@@ -193,6 +232,9 @@ test("Practice skip updates mastery, Daily repeats its seed, and reduced motion 
   await expect(page.locator("#skip-button")).toBeVisible();
   await expect(page.locator("#hud-time")).toHaveText("∞");
   await expect(page.locator(".danger-panel")).toBeHidden();
+  await expect(page.locator("#practice-rivals")).toBeVisible();
+  await expect(page.locator("#practice-rival-state")).toContainText(/계속|불러오지/);
+  await expect(page.locator("#practice-rival-target")).toContainText("랭킹에 제출되지 않습니다");
   await expect(page.locator("#hud-problem")).toHaveText("1 / 30");
   await page.locator("#skip-button").click();
   await expect(page.locator("#feedback-message")).toContainText("SKIPPED");
@@ -224,6 +266,44 @@ test("Practice skip updates mastery, Daily repeats its seed, and reduced motion 
   expect(await page.locator("html").getAttribute("data-reduced-motion")).toBe("true");
 });
 
+test("anonymous question editor validates input without an admin email", async ({ page }) => {
+  await preparePage(page, { nickname: "EditorQA" });
+  await page.locator("#open-questions").click();
+  await expect(page.locator("#screen-questions")).toBeVisible();
+  await expect(page.locator("#question-editor-form input[type=email]")).toHaveCount(0);
+  await expect(page.locator("#question-source option").first()).toContainText("새 공유 문제");
+
+  await page.locator("#question-level-input").selectOption("2");
+  await page.locator("#question-code-input").fill("print(1)");
+  await page.locator("#question-answer-input").fill("1");
+  await page.locator("#question-output-input").fill("1");
+  await page.locator("#question-editor-form button[type=submit]").click();
+  await expect(page.locator("#question-editor-message")).toContainText("형식을 확인");
+
+  await page.locator("#question-level-input").selectOption("1");
+  await page.locator("#question-code-input").fill("print(123)");
+  await page.locator("#question-editor-form button[type=submit]").click();
+  await expect(page.locator("#question-editor-message")).toContainText(/저장하지 못|오프라인/);
+});
+
+test("Sample Logic starts a short executable non-ranked Practice pool", async ({ page }) => {
+  await preparePage(page, { nickname: "SampleQA" });
+  await page.locator("#start-samples").click();
+  await expect(page.locator("#game-mode-label")).toHaveText("SAMPLE LOGIC");
+  await page.clock.runFor(3_050);
+  await expect(page.locator("#typing-input")).toBeEnabled();
+  const code = await page.locator("#question-code").textContent();
+  expect([
+    "numbers = [2, 4, 6]",
+    "score = 82",
+    "squares = []",
+    "name = \"python\"",
+    "count = 3",
+    "numbers = [1, 2, 3, 4]",
+  ].some((prefix) => code.startsWith(prefix))).toBe(true);
+  await expect(page.locator("#skip-button")).toBeVisible();
+});
+
 test("360px, 768px and 1280px layouts keep code and input inside the viewport", async ({ page }) => {
   await preparePage(page, { nickname: "LongPlayer12" });
   await page.locator("#start-quick").click();
@@ -245,6 +325,8 @@ test("360px, 768px and 1280px layouts keep code and input inside the viewport", 
         codeRight: code.right,
         inputLeft: input.left,
         inputRight: input.right,
+        codeBottom: code.bottom,
+        inputTop: input.top,
         overlap: Math.max(0, Math.min(code.bottom, input.bottom) - Math.max(code.top, input.top))
           * Math.max(0, Math.min(code.right, input.right) - Math.max(code.left, input.left)),
       };
@@ -254,6 +336,7 @@ test("360px, 768px and 1280px layouts keep code and input inside the viewport", 
     expect(geometry.codeRight).toBeLessThanOrEqual(geometry.viewportWidth);
     expect(geometry.inputLeft).toBeGreaterThanOrEqual(0);
     expect(geometry.inputRight).toBeLessThanOrEqual(geometry.viewportWidth);
+    expect(geometry.inputTop).toBeGreaterThanOrEqual(geometry.codeBottom);
     expect(geometry.overlap).toBe(0);
     await page.screenshot({ path: `test-results/layout-${viewport.width}.png`, fullPage: true });
   }

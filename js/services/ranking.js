@@ -178,6 +178,17 @@ function normalizeRows(response) {
   return entries.every(Boolean) ? entries : null;
 }
 
+function normalizeNearbyRows(response) {
+  if (!Array.isArray(response)) return null;
+  const entries = response.map((row) => {
+    const entry = normalizeRankingRow(row);
+    return entry && typeof row.is_current_user === "boolean"
+      ? Object.freeze({ ...entry, isCurrentUser: row.is_current_user })
+      : null;
+  });
+  return entries.every(Boolean) ? entries : null;
+}
+
 function invalidResult(errors) {
   return Object.freeze({
     ok: false,
@@ -372,6 +383,34 @@ export class RankingService {
     }
   }
 
+  async getNearbyRanking({ contentVersion, radius = 5 } = {}) {
+    const validation = queryValidation({ limit: 1, contentVersion });
+    if (!validation.ok || !isIntegerInRange(radius, 1, 5)) {
+      return invalidResult([
+        ...(!validation.ok ? validation.errors : []),
+        ...(!isIntegerInRange(radius, 1, 5) ? ["radius_invalid"] : []),
+      ]);
+    }
+    if (!this.isOnlineRankingAvailable()) {
+      return serviceFailure(new SupabaseClientError("not_configured"));
+    }
+    try {
+      const response = await this.client.rpc("get_nearby_ranking", {
+        p_content_version: validation.value.contentVersion,
+        p_radius: radius,
+      }, { authenticated: true });
+      const entries = normalizeNearbyRows(response);
+      if (!entries) return serviceFailure(new SupabaseClientError("invalid_response"));
+      return Object.freeze({
+        ok: true,
+        status: entries.length === 0 ? "empty" : "ready",
+        entries,
+      });
+    } catch (error) {
+      return serviceFailure(error);
+    }
+  }
+
   async retryPendingSubmissions() {
     const pending = this.storageRepository?.read?.().pendingRankingSubmissions ?? [];
     const outcomes = [];
@@ -394,4 +433,5 @@ export const rankingApi = Object.freeze({
   getTodayRanking: "getTodayRanking({ limit, contentVersion })",
   getMyBest: "getMyBest({ contentVersion })",
   getMyRank: "getMyRank({ sessionId, contentVersion })",
+  getNearbyRanking: "getNearbyRanking({ contentVersion, radius })",
 });

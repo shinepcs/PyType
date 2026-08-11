@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { GameState } from "../js/core/game-state.js";
+import { GameState, LEVEL_2_TIME_RULES } from "../js/core/game-state.js";
+import { createLevel2PrerequisiteQuestion, level2PrerequisiteKey, recordLevel2Prerequisite } from "../js/core/level2-progression.js";
 import {
   createDailySeed,
   createSessionConfig,
@@ -60,6 +61,48 @@ test("Daily seed uses local date and content version", () => {
   const date = new Date(2026, 7, 11, 23, 59);
   assert.equal(localDateKey(date), "2026-08-11");
   assert.equal(createDailySeed(date, "1.0.0"), "daily:2026-08-11:1.0.0");
+});
+
+test("Level 2 is revealed only after two matching Level 1 copy solves", () => {
+  const fill = question({
+    id: "max.fill.1", sourceId: "max.fill.1", instanceId: "max.fill.1",
+    level: 2, type: "fill", code: "print(_____(values))", answer: "max",
+    acceptedAnswers: ["max"], tags: [],
+  });
+  const first = createLevel2PrerequisiteQuestion(fill, 0);
+  assert.equal(first.level, 1);
+  assert.equal(first.code, "print(max(values))");
+  assert.equal(first.answer, first.code);
+  let progress = recordLevel2Prerequisite({ questionId: first.sourceId }, {});
+  progress = recordLevel2Prerequisite({ questionId: first.sourceId }, progress);
+  const prerequisiteKey = level2PrerequisiteKey(fill);
+  assert.equal(progress[prerequisiteKey], 2);
+  assert.equal(createLevel2PrerequisiteQuestion(fill, progress[prerequisiteKey]), fill);
+});
+
+test("Level 2 freezes clocks, penalizes the first typo once, and rewards a solve", () => {
+  const clock = new ManualClock(0);
+  const game = new GameState(gameOptions(clock, { config: { durationMs: 20_000 } }));
+  game.start();
+  clock.advance(5_000);
+  game.tick();
+  game.startProblem(question({ level: 2, type: "fill", code: "_____", answer: "a", acceptedAnswers: ["a"] }));
+  clock.advance(8_000);
+  game.tick();
+  assert.equal(game.activeSessionMs, 5_000);
+  assert.equal(game.currentProblemElapsedMs, 0);
+  assert.equal(game.danger, 20);
+
+  const typo = game.handleKey("x");
+  assert.equal(typo.timeAdjustmentMs, -LEVEL_2_TIME_RULES.penaltyMs);
+  assert.equal(game.remainingMs, 13_000);
+  game.handleKey("x");
+  assert.equal(game.remainingMs, 13_000, "only the first Level 2 typo changes time");
+  game.handleKey("Backspace");
+  game.handleKey("Backspace");
+  const solved = game.handleKey("a");
+  assert.equal(solved.timeAdjustmentMs, LEVEL_2_TIME_RULES.bonusMs);
+  assert.equal(game.remainingMs, 16_000);
 });
 
 test("ready state becomes playing after exactly three seconds", () => {

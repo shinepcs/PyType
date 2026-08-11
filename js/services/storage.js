@@ -29,7 +29,7 @@ const ROOT_KEYS = Object.freeze([
 ]);
 const PROFILE_KEYS = Object.freeze(["nickname", "createdAt"]);
 const SETTINGS_KEYS = Object.freeze(["sound", "reducedMotion", "fontScale"]);
-const PROGRESS_KEYS = Object.freeze(["skills"]);
+const PROGRESS_KEYS = Object.freeze(["skills", "level2Prerequisites"]);
 const PERSONAL_BEST_KEYS = Object.freeze(["quick", "daily"]);
 const SKILL_KEYS = Object.freeze([
   "attempts",
@@ -120,6 +120,7 @@ export function createDefaultStorageData(now = () => new Date()) {
     },
     progress: {
       skills: {},
+      level2Prerequisites: {},
     },
     history: [],
     personalBest: {
@@ -356,7 +357,9 @@ export function validateStorageData(input) {
   }
 
   if (!isPlainObject(input.progress) || !hasOnlyKeys(input.progress, PROGRESS_KEYS)
-      || !isPlainObject(input.progress?.skills)) {
+      || !isPlainObject(input.progress?.skills)
+      || (input.progress.level2Prerequisites !== undefined
+        && !isPlainObject(input.progress.level2Prerequisites))) {
     errors.push("progress.skills must be an object without unknown progress fields");
   }
   const skills = {};
@@ -367,6 +370,16 @@ export function validateStorageData(input) {
     }
     const normalized = normalizeSkill(skill, errors, "progress.skills." + skillId);
     if (normalized) skills[skillId] = normalized;
+  }
+  const level2Prerequisites = {};
+  const prerequisiteEntries = Object.entries(input.progress?.level2Prerequisites ?? {});
+  if (prerequisiteEntries.length > 500) errors.push("progress.level2Prerequisites exceeds 500 entries");
+  for (const [questionId, count] of prerequisiteEntries.slice(0, 500)) {
+    if (questionId.length < 1 || questionId.length > 120 || !isIntegerInRange(count, 0, 2)) {
+      errors.push("progress.level2Prerequisites has an invalid entry");
+      continue;
+    }
+    level2Prerequisites[questionId] = count;
   }
 
   if (!Array.isArray(input.history)) {
@@ -416,7 +429,7 @@ export function validateStorageData(input) {
         reducedMotion: input.settings.reducedMotion,
         fontScale: input.settings.fontScale,
       },
-      progress: { skills },
+      progress: { skills, level2Prerequisites },
       history,
       personalBest,
       pendingRankingSubmissions,

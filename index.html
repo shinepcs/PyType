@@ -79,13 +79,28 @@
               </span>
               <span class="mode-arrow" aria-hidden="true">→</span>
             </button>
+            <button class="mode-card" id="start-samples" type="button">
+              <span class="mode-index">04</span>
+              <span class="mode-body">
+                <strong>SAMPLE LOGIC</strong>
+                <small>실행 가능한 2~3줄 Python 로직 · 비랭크</small>
+              </span>
+              <span class="mode-arrow" aria-hidden="true">→</span>
+            </button>
           </div>
 
           <nav class="utility-nav" aria-label="학습 및 설정">
             <button id="open-ranking" type="button">RANKING</button>
+            <button id="open-questions" type="button">QUESTIONS</button>
             <button id="open-progress" type="button">PROGRESS</button>
             <button id="open-settings" type="button">SETTINGS</button>
           </nav>
+          <aside class="online-players" aria-labelledby="online-players-title">
+            <header><h2 id="online-players-title">ONLINE PLAYERS</h2><span id="online-player-count">0 ONLINE</span></header>
+            <p id="online-player-state" role="status">접속자를 확인하는 중…</p>
+            <ul id="online-player-list"></ul>
+            <small>최근 90초 활동 · Quick 최고 점수</small>
+          </aside>
         </section>
 
         <section class="screen setup-screen" id="screen-practice" data-screen="practice" aria-labelledby="practice-title" hidden>
@@ -139,6 +154,19 @@
             <div class="enemy-unit enemy-two"><span class="enemy-face">×</span></div>
             <div class="attack-trace" id="attack-trace"></div>
           </div>
+
+          <aside class="practice-rivals" id="practice-rivals" aria-labelledby="practice-rivals-title" hidden>
+            <div class="rival-pace">
+              <span>YOU · PRACTICE PACE</span>
+              <strong id="practice-pace-score">0</strong>
+              <small id="practice-rival-target">연습 점수는 랭킹에 제출되지 않습니다.</small>
+            </div>
+            <div class="rival-board">
+              <header><h2 id="practice-rivals-title">RIVAL PACE · QUICK RANK ±5</h2></header>
+              <p id="practice-rival-state" role="status">내 Quick 순위 주변 라이벌을 불러오는 중입니다…</p>
+              <ol id="practice-rival-list"></ol>
+            </div>
+          </aside>
 
           <div class="problem-layout">
             <article class="code-card" aria-labelledby="question-label">
@@ -250,6 +278,41 @@
           </div>
           <div class="progress-summary" id="progress-summary"></div>
           <div class="mastery-grid" id="mastery-grid"></div>
+        </section>
+
+        <section class="screen questions-screen" id="screen-questions" data-screen="questions" aria-labelledby="questions-title" hidden>
+          <div class="screen-heading">
+            <div>
+              <p class="eyebrow">SHARED PRACTICE CONTENT</p>
+              <h1 id="questions-title">문제 추가 · 편집</h1>
+              <p>이메일이나 관리자 계정 없이 저장할 수 있습니다. 검증을 통과한 최신 revision은 모든 사용자의 Practice에 적용됩니다.</p>
+            </div>
+            <button class="text-button" data-nav-home type="button">← HOME</button>
+          </div>
+          <div class="question-editor-layout">
+            <aside class="question-source-panel">
+              <label for="question-source">편집할 문제</label>
+              <select id="question-source"></select>
+              <p>Quick/Daily 공식 문제와 랭킹 기준은 변경하지 않습니다. 원본 삭제는 지원하지 않습니다.</p>
+            </aside>
+            <form class="question-editor-form" id="question-editor-form">
+              <div class="editor-row">
+                <label>레벨<select id="question-level-input"><option value="1">Level 1 · 전체 코드</option><option value="2">Level 2 · 빈칸 + OUTPUT</option></select></label>
+                <label>문법<select id="question-skill-input"></select></label>
+                <label>목표 시간<input id="question-target-input" type="number" min="5" max="15" value="8" required /></label>
+              </div>
+              <label>Python 코드<textarea id="question-code-input" rows="6" maxlength="300" required></textarea><small id="question-code-help">화면에 보이는 전체 코드가 정답으로 사용됩니다.</small></label>
+              <div id="level-two-fields" hidden>
+                <label>정답<input id="question-answer-input" maxlength="120" /></label>
+                <label>OUTPUT<textarea id="question-output-input" rows="3" maxlength="200"></textarea></label>
+              </div>
+              <div class="editor-actions">
+                <button class="primary-button" type="submit">SAVE FOR EVERYONE</button>
+                <button class="secondary-button" id="new-question" type="button">NEW</button>
+              </div>
+              <p class="form-message" id="question-editor-message" role="status"></p>
+            </form>
+          </div>
         </section>
 
         <section class="screen settings-screen" id="screen-settings" data-screen="settings" aria-labelledby="settings-title" hidden>

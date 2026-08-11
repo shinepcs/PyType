@@ -17,6 +17,7 @@ import {
 import { createSessionConfig, GAME_MODES } from "./session.js";
 
 const TERMINAL_REASONS = new Set(["time-limit", "game-over", "question-limit", "completed"]);
+export const LEVEL_2_TIME_RULES = Object.freeze({ bonusMs: 3_000, penaltyMs: 2_000 });
 
 function defaultSessionId() {
   if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
@@ -90,6 +91,7 @@ export class GameState {
     this.lastObservedAt = this.createdAt;
 
     this.activeSessionMs = 0;
+    this.level2TimeAdjustmentMs = 0;
     this.danger = SURVIVAL.startingDanger;
     this.combo = 0;
     this.bestCombo = 0;
@@ -105,6 +107,7 @@ export class GameState {
     this.problemToken = 0;
     this.currentProblemElapsedMs = 0;
     this.currentTypoPenalties = 0;
+    this.currentLevel2TimePenaltyApplied = false;
 
     this.pauseReasons = new Set();
     this.pauseStartedAt = null;
@@ -170,10 +173,14 @@ export class GameState {
     const from = this.lastTickAt ?? now;
     const requestedDelta = Math.max(0, now - from);
     if (requestedDelta === 0) return;
+    if (this.currentQuestion?.level === 2) {
+      this.lastTickAt = now;
+      return;
+    }
 
-    const sessionRemaining = this.config.durationMs === null
+    const sessionRemaining = this.remainingMs === null
       ? Number.POSITIVE_INFINITY
-      : Math.max(0, this.config.durationMs - this.activeSessionMs);
+      : this.remainingMs;
     const dangerRemainingMs = this.currentQuestion
       && this.config.dangerEnabled
       && this.config.gameOverEnabled
@@ -233,6 +240,7 @@ export class GameState {
     this.problemToken += 1;
     this.currentProblemElapsedMs = 0;
     this.currentTypoPenalties = 0;
+    this.currentLevel2TimePenaltyApplied = false;
     return true;
   }
 
@@ -302,25 +310,44 @@ export class GameState {
       return immutableStatus(this, { ignored: true, staleProblemEvent: true });
     }
     const event = operation(this.typingEngine, now);
+    let timeAdjustmentMs = 0;
     if (event.errors > 0) {
-      const penalty = applyTypoPenalty(
-        this.danger,
-        this.currentTypoPenalties,
-        event.errors,
-      );
-      this.danger = penalty.danger;
-      this.currentTypoPenalties = penalty.penaltiesApplied;
+      if (this.currentQuestion.level === 2 && this.config.durationMs !== null) {
+        if (!this.currentLevel2TimePenaltyApplied) {
+          const remaining = this.remainingMs;
+          const applied = Math.min(LEVEL_2_TIME_RULES.penaltyMs, remaining);
+          this.level2TimeAdjustmentMs -= applied;
+          timeAdjustmentMs = -applied;
+          this.currentLevel2TimePenaltyApplied = true;
+        }
+      } else {
+        const penalty = applyTypoPenalty(
+          this.danger,
+          this.currentTypoPenalties,
+          event.errors,
+        );
+        this.danger = penalty.danger;
+        this.currentTypoPenalties = penalty.penaltiesApplied;
+      }
       if (event.comboBroken) this.combo = 0;
+      if (this.remainingMs !== null && this.remainingMs <= 0) {
+        this._finish("time-limit", now);
+        return Object.freeze({ ...event, timeAdjustmentMs, ended: true, endReason: this.endReason });
+      }
       if (this.config.gameOverEnabled && isGameOver(this.danger)) {
         this._finish("game-over", now);
         return Object.freeze({ ...event, ended: true, endReason: this.endReason });
       }
     }
     if (event.completed && this.phase === "playing") {
+      if (this.currentQuestion.level === 2 && this.config.durationMs !== null) {
+        this.level2TimeAdjustmentMs += LEVEL_2_TIME_RULES.bonusMs;
+        timeAdjustmentMs += LEVEL_2_TIME_RULES.bonusMs;
+      }
       const problemResult = this._completeProblem(now);
-      return Object.freeze({ ...event, problemResult, ended: this.phase === "ended", endReason: this.endReason });
+      return Object.freeze({ ...event, timeAdjustmentMs, problemResult, ended: this.phase === "ended", endReason: this.endReason });
     }
-    return event;
+    return timeAdjustmentMs === 0 ? event : Object.freeze({ ...event, timeAdjustmentMs });
   }
 
   _completeProblem(now) {
@@ -365,6 +392,7 @@ export class GameState {
     this.typingEngine = null;
     this.currentProblemElapsedMs = 0;
     this.currentTypoPenalties = 0;
+    this.currentLevel2TimePenaltyApplied = false;
 
     if (this.problemsSolved >= this.config.maxQuestions) {
       this._finish("question-limit", now);
@@ -405,6 +433,7 @@ export class GameState {
     this.typingEngine = null;
     this.currentProblemElapsedMs = 0;
     this.currentTypoPenalties = 0;
+    this.currentLevel2TimePenaltyApplied = false;
     return result;
   }
 
@@ -590,7 +619,7 @@ export class GameState {
 
   get remainingMs() {
     if (this.config.durationMs === null) return null;
-    return Math.max(0, this.config.durationMs - this.activeSessionMs);
+    return Math.max(0, this.config.durationMs + this.level2TimeAdjustmentMs - this.activeSessionMs);
   }
 
   get rawScore() {

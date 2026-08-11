@@ -1,8 +1,9 @@
 # Supabase ranking setup
 
-`schema.sql` is the source of truth for the MVP leaderboard. It stores only the
-public nickname and the minimum Quick Play result needed for ranking. Skill
-progress, mistakes, and local history are never uploaded.
+`schema.sql` is the source of truth for ranking, shared Practice questions, and
+short-lived online presence. It stores the public nickname and minimum Quick
+result, append-only validated question revisions, and a 90-second heartbeat.
+Skill progress, mistakes, and local history are never uploaded.
 
 ## Apply
 
@@ -18,6 +19,12 @@ The browser has column-limited `INSERT` access only. It cannot choose `id` or
 `created_at`, and it has no raw-table `SELECT`, `UPDATE`, or `DELETE` grant.
 Leaderboard reads use narrow security-definer RPCs which fix `search_path`,
 validate parameters, and do not return `user_id` or `session_id`.
+
+`submit_shared_question` uses the same anonymous session and requires no email
+or admin role. It validates the Level 1/2 shape again in PostgreSQL and appends a
+revision; `get_shared_questions` exposes only the latest revision. Shared
+questions affect Practice only. `touch_online_player` and `get_online_players`
+expose no user identifier and consider a browser online for 90 seconds.
 
 The dependency-free auth client keeps the minimal refreshable anonymous session
 under `pythonTypingSurvival:supabase-auth:v1`. This is an authentication
