@@ -366,6 +366,14 @@ test("Sample Logic starts a short executable non-ranked Practice pool", async ({
     "name = \"python\"",
     "count = 3",
     "numbers = [1, 2, 3, 4]",
+    "items = [\"a\", \"b\", \"c\"]",
+    "scores = [81, 100, 62, 100, 90]",
+    "tags = [\"py\", \"list\", \"py\", \"set\"]",
+    "a = {\"A1\", \"A2\"}",
+    "need = {\"read\", \"export\"}",
+    "left = {\"a\", \"b\"}",
+    "colors = {\"red\", \"blue\"}",
+    "seen = {\"a\", \"b\"}",
   ].some((prefix) => code.startsWith(prefix))).toBe(true);
   await expect(page.locator("#skip-button")).toBeVisible();
 });

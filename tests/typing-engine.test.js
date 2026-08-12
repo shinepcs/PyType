@@ -40,6 +40,27 @@ test("Enter stays a line break before the final line and becomes an incorrect-su
   assert.equal(engine.shouldSubmitIncorrectOnEnter(), true);
 });
 
+test("Enter after a Python block line inserts the next answer indentation without adding manual Tab attempts", () => {
+  const answer = '    for filename in files:\n        extension = filename.rsplit(".", 1)[-1]';
+  const engine = new TypingEngine(answer);
+  engine.insert("    for filename in files:", 0);
+  const event = engine.handleKey("Enter", 10);
+  assert.equal(event.inserted, "\n        ");
+  assert.equal(event.attempts, 1);
+  assert.equal(event.correctAttempts, 1);
+  assert.equal(engine.input, "    for filename in files:\n        ");
+  assert.equal(engine.totalKeystrokes, "    for filename in files:".length + 1);
+  engine.insert('extension = filename.rsplit(".", 1)[-1]', 20);
+  assert.equal(engine.completed, true);
+});
+
+test("line-break beforeinput follows the same answer indentation", () => {
+  const engine = new TypingEngine("if ready:\n    print(1)");
+  engine.insert("if ready:", 0);
+  engine.handleBeforeInput({ inputType: "insertLineBreak" }, 10);
+  assert.equal(engine.input, "if ready:\n    ");
+});
+
 test("a corrected first typo permanently reduces accuracy and cleanSolve", () => {
   const engine = new TypingEngine("abc");
   const typo = engine.handleKey("x", 0);

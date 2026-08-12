@@ -138,7 +138,7 @@ export class TypingEngine {
       return this.backspace(timestamp);
     }
     if (key === "Enter") {
-      return this.insert("\n", timestamp);
+      return this.insertLineBreak(timestamp);
     }
     if (key === "Tab") {
       if (!this.allowTab) {
@@ -163,7 +163,7 @@ export class TypingEngine {
       return this.backspace(timestamp);
     }
     if (event.inputType === "insertLineBreak" || event.inputType === "insertParagraph") {
-      return this.insert("\n", timestamp);
+      return this.insertLineBreak(timestamp);
     }
     if (event.inputType === "insertText") {
       return this.insert(event.data ?? "", timestamp);
@@ -171,7 +171,31 @@ export class TypingEngine {
     return frozenEvent({ ignored: true, input: this.input, completed: this.completed });
   }
 
-  insert(value, timestamp, { source = "keyboard" } = {}) {
+  getAutoIndentationAfterLineBreak() {
+    const candidate = this.acceptedAnswers.find((answer) => answer.startsWith(`${this.input}\n`));
+    if (!candidate) return "";
+    const currentLine = this.input.slice(this.input.lastIndexOf("\n") + 1);
+    if (!currentLine.trimEnd().endsWith(":")) return "";
+    return candidate.slice(this.input.length + 1).match(/^( +)/)?.[0] ?? "";
+  }
+
+  insertLineBreak(timestamp) {
+    const autoIndentation = this.getAutoIndentationAfterLineBreak();
+    const lineBreak = this.insert("\n", timestamp);
+    if (!lineBreak.accepted || autoIndentation.length === 0) return lineBreak;
+    const indentation = this.insert(autoIndentation, timestamp, {
+      source: "auto-indent",
+      countAsAttempt: false,
+    });
+    return frozenEvent({
+      ...lineBreak,
+      inserted: `${lineBreak.inserted}${indentation.inserted}`,
+      input: this.input,
+      comparisons: Object.freeze([...lineBreak.comparisons, ...indentation.comparisons]),
+    });
+  }
+
+  insert(value, timestamp, { source = "keyboard", countAsAttempt = true } = {}) {
     if (isBlockedInputSource(source)) {
       return frozenEvent({ blocked: true, input: this.input, completed: this.completed });
     }
@@ -212,14 +236,16 @@ export class TypingEngine {
 
       this.input += character;
       inserted += character;
-      this.totalKeystrokes += 1;
-      if (correct) {
-        this.correctKeystrokes += 1;
-        correctAttempts += 1;
-      } else {
-        this.errorCount += 1;
-        errors += 1;
-        this.cleanSolve = false;
+      if (countAsAttempt) {
+        this.totalKeystrokes += 1;
+        if (correct) {
+          this.correctKeystrokes += 1;
+          correctAttempts += 1;
+        } else {
+          this.errorCount += 1;
+          errors += 1;
+          this.cleanSolve = false;
+        }
       }
       comparisons.push(Object.freeze({ position, expected, actual: character, correct }));
 
