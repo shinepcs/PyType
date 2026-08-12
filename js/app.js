@@ -32,6 +32,7 @@ import {
   triggerAttack,
 } from "./ui/render-game.js";
 import { renderProgress } from "./ui/render-progress.js";
+import { flashExpectedCharacter } from "./ui/render-game.js";
 import { renderRankingState, selectRankingTab } from "./ui/render-ranking.js";
 import { renderRankingSubmission, renderResult } from "./ui/render-results.js";
 import { renderPracticeRivals } from "./ui/render-practice-rivals.js";
@@ -698,8 +699,26 @@ class PythonTypingSurvivalApp {
     this.processTypingOutcome(outcome);
   }
 
+  hideAnswerPopup() {
+    const popup = $("#answer-popup");
+    if (popup) popup.hidden = true;
+  }
+
+  showAnswerPopup({ correct }) {
+    const popup = $("#answer-popup");
+    if (!popup) return;
+    popup.hidden = false;
+    popup.dataset.kind = correct ? "correct" : "incorrect";
+    $("#answer-popup-kicker").textContent = correct ? "CORRECT" : "INCORRECT";
+    $("#answer-popup-title").textContent = correct ? "정답" : "오답";
+    $("#answer-popup-detail").textContent = correct
+      ? "선택지의 정답 내용을 정확히 입력했습니다."
+      : "정답 내용을 다시 확인하고 다음 문제에서 이어 가세요.";
+  }
+
   handleLevel2FeedbackKey(event) {
     const session = this.activeSession;
+    this.hideAnswerPopup();
     if (!session?.awaitingLevel2Advance || event.ctrlKey || event.metaKey || event.altKey) return;
     if (["Shift", "Control", "Alt", "Meta"].includes(event.key)) return;
     event.preventDefault();
@@ -751,6 +770,7 @@ class PythonTypingSurvivalApp {
     this.renderActiveHud(snapshot);
 
     if (outcome?.errors > 0) {
+      flashExpectedCharacter();
       this.showTypingFeedback(outcome.blockedMistakes > 0
         ? outcome.timeAdjustmentMs < 0
           ? "TYPO BLOCKED · TIME -2s"
@@ -763,6 +783,9 @@ class PythonTypingSurvivalApp {
     if (outcome?.problemResult) {
       $("#typing-input").disabled = true;
       if (outcome.problemResult.level === 2 && outcome.submittedLevel2Answer) {
+        if (!outcome.ended) {
+          this.showAnswerPopup({ correct: !outcome.problemResult.submittedIncorrect });
+        }
         const correct = !outcome.problemResult.submittedIncorrect;
         this.showTypingFeedback(
           correct

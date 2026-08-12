@@ -1,4 +1,4 @@
-import { getLevel2Hint } from "../content/level2-hints.js";
+import { getLevel2Choices, getLevel2Hint } from "../content/level2-hints.js";
 
 const byId = (id, root = document) => root.querySelector(`#${id}`);
 
@@ -88,6 +88,22 @@ export function renderQuestion(question, { root = document, timed = true } = {})
   if (hint) {
     hint.hidden = !isFill;
     setText(hint, isFill ? `힌트 · ${getLevel2Hint(question)}` : "");
+  }
+  const choices = byId("level2-choices", root);
+  if (choices) {
+    choices.hidden = !isFill;
+    choices.replaceChildren();
+    if (isFill) {
+      getLevel2Choices(question).forEach((choice, index) => {
+        const item = document.createElement("li");
+        const number = document.createElement("span");
+        const content = document.createElement("code");
+        number.textContent = String(index + 1);
+        content.textContent = choice;
+        item.append(number, content);
+        choices.append(item);
+      });
+    }
   }
   renderCodeWithBlank(byId("question-code", root), question.code, isFill);
 
@@ -198,4 +214,44 @@ export function triggerAttack({ root = document, clean = true } = {}) {
       lane.dataset.hit = "false";
     }, 320);
   });
+}
+
+/** Briefly highlight the first incorrect or pending character in the reference code. */
+export function flashExpectedCharacter({ root = document, durationMs = 620 } = {}) {
+  const input = byId("typing-input", root);
+  const code = byId("question-code", root)?.querySelector("code");
+  if (!input || !code) return;
+
+  const expected = code.textContent ?? "";
+  const actual = input.value ?? "";
+  let index = 0;
+  while (index < expected.length && index < actual.length && expected[index] === actual[index]) {
+    index += 1;
+  }
+  if (index >= expected.length) return;
+
+  const token = String((Number(code.dataset.typoToken ?? 0) + 1));
+  code.dataset.typoToken = token;
+  const renderedCharacters = [...code.querySelectorAll("span")].filter((span) => !span.classList.contains("cursor"));
+  const existingTarget = renderedCharacters[index];
+  if (existingTarget) {
+    existingTarget.classList.add("typo-target");
+    window.setTimeout(() => {
+      if (code.dataset.typoToken === token) existingTarget.classList.remove("typo-target");
+    }, durationMs);
+    return;
+  }
+
+  const target = document.createElement("span");
+  target.className = "typo-target";
+  target.textContent = expected[index] === "\n" ? "↵" : expected[index];
+  target.setAttribute("aria-label", "다음에 입력할 글자");
+  code.replaceChildren(
+    document.createTextNode(expected.slice(0, index)),
+    target,
+    document.createTextNode(expected.slice(index + 1)),
+  );
+  window.setTimeout(() => {
+    if (code.dataset.typoToken === token) code.textContent = expected;
+  }, durationMs);
 }

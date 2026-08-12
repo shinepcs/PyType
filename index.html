@@ -190,6 +190,7 @@
               </header>
               <p class="question-instruction" id="question-label">보이는 코드를 그대로 입력하세요.</p>
               <p class="question-hint" id="question-hint" hidden></p>
+              <ol class="level2-choices" id="level2-choices" aria-label="Level 2 선택지" hidden></ol>
               <pre class="code-display" id="question-code"><code>print("Ready")</code></pre>
               <div class="output-panel" id="output-panel" hidden>
                 <span id="output-label">OUTPUT</span>
@@ -226,6 +227,12 @@
               <div class="typing-footer">
                 <span id="typing-help">붙여넣기는 사용할 수 없습니다. Tab은 공백 4칸으로 입력됩니다.</span>
                 <span class="feedback-message" id="feedback-message" role="status" aria-live="polite"></span>
+                <aside class="answer-popup" id="answer-popup" role="status" aria-live="assertive" hidden>
+                  <p class="answer-popup-kicker" id="answer-popup-kicker">ANSWER</p>
+                  <strong id="answer-popup-title">정답</strong>
+                  <p id="answer-popup-detail">선택지의 내용을 직접 입력했습니다.</p>
+                  <p class="answer-popup-next">아무 키나 눌러 다음 문제로 이동</p>
+                </aside>
               </div>
             </section>
           </div>

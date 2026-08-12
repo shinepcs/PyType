@@ -33,3 +33,41 @@ export function getLevel2Hint(question) {
   return HINTS_BY_SKILL[question.skill]
     ?? "코드의 빈칸이 하는 일과 OUTPUT이 만들어지는 과정을 차례로 살펴보세요.";
 }
+
+const LEVEL2_OPTION_BANK = Object.freeze([
+  "if", "elif", "else", "for", "while", "break", "continue",
+  "range", "len", "sum", "min", "max", "append", "pop", "sort", "reverse",
+  "print", "randint", "shuffle", "True", "False", "=", "<", "//",
+  "8", "lives", "\"Python\"", "[4, 9, 16]",
+]);
+
+function answerKind(value) {
+  if (/^\d+$/.test(value)) return "number";
+  if (/^[\"\[].*/.test(value)) return "literal";
+  if (/^[^A-Za-z가-힣0-9_]+$/.test(value)) return "operator";
+  return "word";
+}
+
+function stableChoiceIndex(text) {
+  return [...text].reduce((sum, character) => ((sum * 31) + character.codePointAt(0)) >>> 0, 7);
+}
+
+/** Returns four visible answer choices; learners type the content rather than its number. */
+export function getLevel2Choices(question) {
+  const answer = String(question?.answer ?? question?.acceptedAnswers?.[0] ?? "").trim();
+  if (!answer) return [];
+  const kind = answerKind(answer);
+  const matching = LEVEL2_OPTION_BANK.filter((option) => option !== answer && answerKind(option) === kind);
+  const pool = matching.length >= 3
+    ? matching
+    : LEVEL2_OPTION_BANK.filter((option) => option !== answer);
+  const start = stableChoiceIndex(String(question?.id ?? answer)) % pool.length;
+  const distractors = [];
+  for (let offset = 0; distractors.length < 3 && offset < pool.length; offset += 1) {
+    const option = pool[(start + offset) % pool.length];
+    if (!distractors.includes(option)) distractors.push(option);
+  }
+  return [answer, ...distractors].sort((left, right) => (
+    stableChoiceIndex(`${question?.id ?? ""}:${left}`) - stableChoiceIndex(`${question?.id ?? ""}:${right}`)
+  ));
+}
