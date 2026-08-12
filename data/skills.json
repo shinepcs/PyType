@@ -170,6 +170,14 @@
       "enabled": true
     },
     {
+      "id": "set",
+      "category": "collections",
+      "label": "셋",
+      "description": "중복 없는 값을 정리하고 집합 연산을 연습합니다.",
+      "order": 28,
+      "enabled": true
+    },
+    {
       "id": "len",
       "category": "builtins",
       "label": "len",

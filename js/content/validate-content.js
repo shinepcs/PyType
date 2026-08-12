@@ -26,6 +26,7 @@ export const REQUIRED_SKILL_IDS = Object.freeze([
   "break",
   "continue",
   "list",
+  "set",
   "append",
   "pop",
   "sort",
