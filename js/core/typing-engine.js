@@ -58,6 +58,7 @@ function frozenEvent(overrides = {}) {
     errors: 0,
     firstError: false,
     comboBroken: false,
+    blockedMistakes: 0,
     completed: false,
     input: "",
     comparisons: Object.freeze([]),
@@ -71,6 +72,7 @@ export class TypingEngine {
     allowTab = true,
     tabSize = 4,
     autoComplete = true,
+    blockTypos = true,
   } = {}) {
     const normalized = normalizeAnswers(answer, acceptedAnswers);
     this.answer = normalized.primary;
@@ -78,6 +80,7 @@ export class TypingEngine {
     this.allowTab = Boolean(allowTab);
     this.tabSize = Math.max(1, Math.trunc(Number(tabSize) || 4));
     this.autoComplete = Boolean(autoComplete);
+    this.blockTypos = Boolean(blockTypos);
 
     this.input = "";
     this.correctKeystrokes = 0;
@@ -222,6 +225,7 @@ export class TypingEngine {
     let inserted = "";
     let correctAttempts = 0;
     let errors = 0;
+    let blockedMistakes = 0;
     const comparisons = [];
     const wasClean = this.cleanSolve;
 
@@ -234,6 +238,17 @@ export class TypingEngine {
       // are still judged against their own current position, as required by PRD 8.1.
       const correct = this.acceptedAnswers.some((candidate) => candidate[position] === character);
 
+      if (!correct && this.blockTypos && source !== "auto-indent") {
+        if (countAsAttempt) {
+          this.totalKeystrokes += 1;
+          this.errorCount += 1;
+          errors += 1;
+          blockedMistakes += 1;
+          this.cleanSolve = false;
+        }
+        comparisons.push(Object.freeze({ position, expected, actual: character, correct }));
+        continue;
+      }
       this.input += character;
       inserted += character;
       if (countAsAttempt) {
@@ -264,6 +279,7 @@ export class TypingEngine {
       correctAttempts,
       errors,
       firstError: wasClean && !this.cleanSolve,
+      blockedMistakes,
       comboBroken: wasClean && !this.cleanSolve,
       completed: this.completed,
       input: this.input,

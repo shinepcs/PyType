@@ -71,11 +71,13 @@ export class GameState {
     contentVersion = "",
     clientVersion = "",
     sessionQueue = null,
+    typingOptions = {},
   } = {}) {
     this.clock = asClock(clock);
     this.wallClock = asClock(wallClock);
     this.config = createSessionConfig(mode, config);
     this.sessionQueue = sessionQueue;
+    this.typingOptions = { blockTypos: typingOptions.blockTypos !== false };
     this.sessionId = String(sessionId);
     this.contentVersion = String(contentVersion);
     this.clientVersion = String(clientVersion);
@@ -237,7 +239,7 @@ export class GameState {
       throw new RangeError("question.targetSeconds must be positive");
     }
     this.currentQuestion = question;
-    this.typingEngine = createTypingEngine(question);
+    this.typingEngine = createTypingEngine(question, this.typingOptions);
     this.problemToken += 1;
     this.currentProblemElapsedMs = 0;
     this.currentTypoPenalties = 0;

@@ -316,6 +316,7 @@ class PythonTypingSurvivalApp {
     $("#settings-nickname").value = data.profile.nickname ?? "";
     $("#settings-motion").checked = Boolean(data.settings.reducedMotion);
     $("#settings-font-scale").value = String(data.settings.fontScale);
+    $("#settings-block-typos").checked = data.settings.blockTypos !== false;
     $("#font-scale-label").textContent = `${Math.round(data.settings.fontScale * 100)}%`;
     applyAccessibilitySettings(data.settings);
     this.applyPracticeLayout(data.settings.practiceLayout);
@@ -492,6 +493,7 @@ class PythonTypingSurvivalApp {
       mode,
       config,
       sessionId: createSessionId(),
+      typingOptions: { blockTypos: this.storageData.settings.blockTypos !== false },
       contentVersion,
       clientVersion: CLIENT_VERSION,
       sessionQueue: queue,
@@ -747,7 +749,11 @@ class PythonTypingSurvivalApp {
     this.renderActiveHud(snapshot);
 
     if (outcome?.errors > 0) {
-      this.showTypingFeedback(outcome.timeAdjustmentMs < 0
+      this.showTypingFeedback(outcome.blockedMistakes > 0
+        ? outcome.timeAdjustmentMs < 0
+          ? "TYPO BLOCKED · TIME -2s"
+          : "TYPO BLOCKED · 올바른 키를 입력하세요"
+        : outcome.timeAdjustmentMs < 0
         ? "TYPO · TIME -2s · COMBO RESET"
         : outcome.firstError ? "TYPO · COMBO RESET" : "TYPO · 지우고 고치세요");
       announce("오타. 지우고 다시 입력하세요.", { clearAfterMs: 700 });
@@ -1208,6 +1214,7 @@ class PythonTypingSurvivalApp {
       state.profile.nickname = nickname.value;
       state.settings.reducedMotion = $("#settings-motion").checked;
       state.settings.fontScale = fontScale;
+      state.settings.blockTypos = $("#settings-block-typos").checked;
     });
     message.textContent = result.ok ? "설정을 저장했습니다." : "설정을 저장하지 못했습니다.";
     if (result.ok) {

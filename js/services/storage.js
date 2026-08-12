@@ -3,7 +3,7 @@ import { SPEED_HISTORY_LIMIT } from "../core/speed-history.js";
 export const STORAGE_KEY = "pythonTypingSurvival:v1";
 
 export const CORRUPT_BACKUP_PREFIX = STORAGE_KEY + ":corrupt:";
-export const STORAGE_SCHEMA_VERSION = 3;
+export const STORAGE_SCHEMA_VERSION = 4;
 
 export const STORAGE_LIMITS = Object.freeze({
   history: 100,
@@ -34,7 +34,7 @@ const ROOT_KEYS = Object.freeze([
   "pendingRankingSubmissions",
 ]);
 const PROFILE_KEYS = Object.freeze(["nickname", "createdAt"]);
-const SETTINGS_KEYS = Object.freeze(["sound", "reducedMotion", "fontScale", "practiceLayout"]);
+const SETTINGS_KEYS = Object.freeze(["sound", "reducedMotion", "fontScale", "practiceLayout", "blockTypos"]);
 const PRACTICE_LAYOUTS = Object.freeze(["horizontal", "vertical"]);
 const PROGRESS_KEYS = Object.freeze(["skills", "level2Prerequisites"]);
 const PERSONAL_BEST_KEYS = Object.freeze(["quick", "daily"]);
@@ -125,6 +125,7 @@ export function createDefaultStorageData(now = () => new Date()) {
       reducedMotion: false,
       fontScale: 1,
       practiceLayout: "vertical",
+      blockTypos: true,
     },
     progress: {
       skills: {},
@@ -368,10 +369,23 @@ function migrateV2(value) {
   return { ...value, schemaVersion: 3, speedHistory };
 }
 
+function migrateV3(value) {
+  const settings = isPlainObject(value.settings) ? value.settings : {};
+  return {
+    ...value,
+    schemaVersion: 4,
+    settings: {
+      ...settings,
+      blockTypos: settings.blockTypos ?? true,
+    },
+  };
+}
+
 export const STORAGE_MIGRATIONS = Object.freeze({
   0: migrateV0,
   1: migrateV1,
   2: migrateV2,
+  3: migrateV3,
 });
 
 export function migrateStorageData(input, now = () => new Date()) {
@@ -420,8 +434,8 @@ export function validateStorageData(input) {
   if (!isPlainObject(input.settings) || !hasOnlyKeys(input.settings, SETTINGS_KEYS)) {
     errors.push("settings has an invalid shape or unknown fields");
   }
-  if (typeof input.settings?.sound !== "boolean" || typeof input.settings?.reducedMotion !== "boolean") {
-    errors.push("settings sound and reducedMotion must be boolean");
+  if (typeof input.settings?.sound !== "boolean" || typeof input.settings?.reducedMotion !== "boolean" || typeof input.settings?.blockTypos !== "boolean") {
+    errors.push("settings sound, reducedMotion, and blockTypos must be boolean");
   }
   if (!isFiniteInRange(input.settings?.fontScale, 0.75, 1.5)) {
     errors.push("settings.fontScale must be between 0.75 and 1.5");
@@ -512,6 +526,7 @@ export function validateStorageData(input) {
         reducedMotion: input.settings.reducedMotion,
         fontScale: input.settings.fontScale,
         practiceLayout: input.settings.practiceLayout ?? "vertical",
+        blockTypos: input.settings.blockTypos,
       },
       progress: { skills, level2Prerequisites },
       history,

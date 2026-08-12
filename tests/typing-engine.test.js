@@ -30,7 +30,7 @@ test("CRLF is normalized and Level 1 tab becomes exactly four attempts", () => {
 });
 
 test("Enter stays a line break before the final line and becomes an incorrect-submit signal on the final line", () => {
-  const engine = new TypingEngine("first\nsecond");
+  const engine = new TypingEngine("first\nsecond", { blockTypos: false });
   engine.insert("f1rst", 0);
   assert.equal(engine.shouldSubmitIncorrectOnEnter(), false);
   engine.handleKey("Enter", 10);
@@ -59,6 +59,27 @@ test("line-break beforeinput follows the same answer indentation", () => {
   engine.insert("if ready:", 0);
   engine.handleBeforeInput({ inputType: "insertLineBreak" }, 10);
   assert.equal(engine.input, "if ready:\n    ");
+});
+
+test("default typo block warns without placing a wrong character in the input", () => {
+  const engine = new TypingEngine("abc");
+  const typo = engine.handleKey("x", 0);
+  assert.equal(typo.blockedMistakes, 1);
+  assert.equal(typo.errors, 1);
+  assert.equal(engine.input, "");
+  assert.equal(engine.totalKeystrokes, 1);
+  assert.equal(engine.errorCount, 1);
+  engine.insert("abc", 10);
+  assert.equal(engine.completed, true);
+});
+
+test("disabled typo block keeps the editable mistake for Backspace correction", () => {
+  const engine = new TypingEngine("abc", { blockTypos: false });
+  engine.handleKey("x", 0);
+  assert.equal(engine.input, "x");
+  engine.handleKey("Backspace", 1);
+  engine.insert("abc", 2);
+  assert.equal(engine.completed, true);
 });
 
 test("a corrected first typo permanently reduces accuracy and cleanSolve", () => {
@@ -90,7 +111,7 @@ test("repeated mistakes at the same position are all retained", () => {
 });
 
 test("quote type and other Python formatting remain exact", () => {
-  const engine = new TypingEngine('print("hi")');
+  const engine = new TypingEngine('print("hi")', { blockTypos: false });
   engine.insert("print('hi')", 0);
   assert.equal(engine.completed, false);
   assert.equal(engine.errorCount, 2);
@@ -105,7 +126,7 @@ test("accepted alternatives complete only on an exact whole answer", () => {
 });
 
 test("IME interim keys are ignored and composition end is one committed text path", () => {
-  const engine = new TypingEngine("abc");
+  const engine = new TypingEngine("abc", { blockTypos: false });
   engine.compositionStart();
   assert.equal(engine.handleKey({ key: "Process", isComposing: true }, 10).ignored, true);
   assert.equal(engine.totalKeystrokes, 0);

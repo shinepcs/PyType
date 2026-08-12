@@ -85,10 +85,11 @@ function session(index, mode = "quick") {
 
 test("default storage state uses the versioned root schema", () => {
   const data = createDefaultStorageData(() => FIXED_NOW);
-  assert.equal(data.schemaVersion, 3);
+  assert.equal(data.schemaVersion, 4);
   assert.equal(data.profile.nickname, null);
   assert.equal(data.settings.sound, false);
   assert.equal(data.settings.practiceLayout, "vertical");
+  assert.equal(data.settings.blockTypos, true);
   assert.deepEqual(data.progress.skills, {});
   assert.deepEqual(data.history, []);
   assert.deepEqual(data.speedHistory, []);
@@ -133,7 +134,7 @@ test("schema v0 data migrates explicitly and replaces the legacy key", () => {
 
   const loaded = repo.load();
 
-  assert.equal(loaded.schemaVersion, 3);
+  assert.equal(loaded.schemaVersion, 4);
   assert.equal(loaded.profile.nickname, "PyLearner");
   assert.equal(loaded.settings.sound, true);
   assert.equal(loaded.history.length, 1);
@@ -151,7 +152,7 @@ test("v1 speed records migrate to equivalent 분당 타수 values", () => {
 
   const loaded = repo.load();
 
-  assert.equal(loaded.schemaVersion, 3);
+  assert.equal(loaded.schemaVersion, 4);
   assert.equal(loaded.history[0].cpm, 200);
   assert.equal("wpm" in loaded.history[0], false);
 });
@@ -163,7 +164,7 @@ test("v2 sessions seed the dedicated long-term speed history", () => {
   legacy.history = [session(1), session(2, "practice")];
   const loaded = repository(new MemoryStorage([[STORAGE_KEY, JSON.stringify(legacy)]])).load();
 
-  assert.equal(loaded.schemaVersion, 3);
+  assert.equal(loaded.schemaVersion, 4);
   assert.equal(loaded.speedHistory.length, 2);
   assert.equal(loaded.speedHistory[0].cpm, 200);
   assert.equal(loaded.speedHistory[1].gameMode, "practice");
@@ -180,7 +181,7 @@ test("corrupt JSON is backed up verbatim and recovered to defaults", () => {
   const backupKey = storage.keys().find((key) => key.startsWith(CORRUPT_BACKUP_PREFIX));
   assert.ok(backupKey);
   assert.equal(storage.getItem(backupKey), corrupt);
-  assert.equal(JSON.parse(storage.getItem(STORAGE_KEY)).schemaVersion, 3);
+  assert.equal(JSON.parse(storage.getItem(STORAGE_KEY)).schemaVersion, 4);
   assert.equal(repo.getStatus().status, "recovered");
 });
 

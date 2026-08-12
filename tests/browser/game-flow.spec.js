@@ -155,7 +155,8 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
     if (solved === 0) {
       await page.locator("#typing-input").focus();
       await page.keyboard.insertText("!");
-      await expect(page.locator("#feedback-message")).toContainText("TYPO");
+      await expect(page.locator("#feedback-message")).toContainText("TYPO BLOCKED");
+      await expect(page.locator("#typing-input")).toHaveValue("");
       await page.keyboard.press("Backspace");
     }
     await enterAnswer(page, answer);
@@ -326,10 +327,13 @@ test("Practice skip updates mastery, Daily repeats its seed, and reduced motion 
   await page.locator("#brand-home").click();
 
   await page.locator("#open-settings").click();
+  await expect(page.locator("#settings-block-typos")).toBeChecked();
+  await page.locator("#settings-block-typos").uncheck();
   await page.locator("#settings-motion").check();
   await page.locator("#settings-form button[type=submit]").click();
   await expect(page.locator("#settings-message")).toContainText("저장");
   expect(await page.locator("html").getAttribute("data-reduced-motion")).toBe("true");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("pythonTypingSurvival:v1")).settings.blockTypos)).toBe(false);
 });
 
 test("anonymous question editor validates input without an admin email", async ({ page }) => {
@@ -380,6 +384,10 @@ test("Sample Logic starts a short executable non-ranked Practice pool", async ({
 
 test("Beginner Guide presents one of 50 practical long-form programs in a focused workspace", async ({ page }) => {
   await preparePage(page, { nickname: "BeginnerQA" });
+  await page.locator("#open-settings").click();
+  await page.locator("#settings-block-typos").uncheck();
+  await page.locator("#settings-form button[type=submit]").click();
+  await page.locator("#brand-home").click();
   await page.locator("#start-beginner").click();
   await expect(page.locator("#game-mode-label")).toContainText("50 PRACTICAL SNIPPETS");
   await page.clock.runFor(3_050);

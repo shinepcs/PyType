@@ -390,7 +390,7 @@ test("Practice skip records an error without adding a solved problem or score", 
 
 test("Enter submission records a final-line typo as incorrect and releases the next problem", () => {
   const clock = new ManualClock(0);
-  const game = new GameState(gameOptions(clock));
+  const game = new GameState({ ...gameOptions(clock), typingOptions: { blockTypos: false } });
   game.start();
   game.startProblem(question({ answer: "ab\ncd", code: "ab\ncd", acceptedAnswers: ["ab\ncd"] }));
   game.input("ax\ncd");
