@@ -111,6 +111,7 @@ export class GameState {
     this.currentProblemElapsedMs = 0;
     this.currentTypoPenalties = 0;
     this.currentLevel2TimePenaltyApplied = false;
+    this.pendingEndReason = null;
 
     this.pauseReasons = new Set();
     this.pauseStartedAt = null;
@@ -132,12 +133,8 @@ export class GameState {
   }
 
   beginReady(timestamp) {
-    if (this.phase !== "idle") return false;
-    const now = this._time(timestamp);
-    this.phase = "ready";
-    this.readyStartedAt = now;
-    this.readyEndsAt = now + this.config.readyMs;
-    return true;
+    // Kept as a compatibility entry point: all modes now begin typing immediately.
+    return this.start(timestamp);
   }
 
   start(timestamp) {
@@ -173,6 +170,10 @@ export class GameState {
 
   _advancePlaying(now) {
     if (this.phase !== "playing") return;
+    if (this.pendingEndReason) {
+      this.lastTickAt = now;
+      return;
+    }
     const from = this.lastTickAt ?? now;
     const requestedDelta = Math.max(0, now - from);
     if (requestedDelta === 0) return;
@@ -216,14 +217,30 @@ export class GameState {
     const reachedDangerLimit = dangerRemainingMs <= requestedDelta
       && dangerRemainingMs < sessionRemaining;
     if (reachedSessionLimit) {
-      this._finish("time-limit", from + sessionRemaining);
+      this._deferEnd("time-limit", from + sessionRemaining);
       return;
     }
     if (reachedDangerLimit || (this.config.gameOverEnabled && isGameOver(this.danger))) {
-      this._finish("game-over", from + dangerRemainingMs);
+      this._deferEnd("game-over", from + dangerRemainingMs);
       return;
     }
     this.lastTickAt = now;
+  }
+
+  _deferEnd(reason, timestamp) {
+    if (this.currentQuestion) {
+      this.pendingEndReason = reason;
+      this.lastTickAt = timestamp;
+      return;
+    }
+    this._finish(reason, timestamp);
+  }
+
+  _finishDeferredEnd(timestamp) {
+    if (!this.pendingEndReason || this.phase !== "playing") return;
+    const reason = this.pendingEndReason;
+    this.pendingEndReason = null;
+    this._finish(reason, timestamp);
   }
 
   startProblem(question, timestamp) {
@@ -244,6 +261,7 @@ export class GameState {
     this.currentProblemElapsedMs = 0;
     this.currentTypoPenalties = 0;
     this.currentLevel2TimePenaltyApplied = false;
+    this.pendingEndReason = null;
     return true;
   }
 
@@ -334,11 +352,11 @@ export class GameState {
       }
       if (event.comboBroken) this.combo = 0;
       if (this.remainingMs !== null && this.remainingMs <= 0) {
-        this._finish("time-limit", now);
-        return Object.freeze({ ...event, timeAdjustmentMs, ended: true, endReason: this.endReason });
+        this._deferEnd("time-limit", now);
+        return Object.freeze({ ...event, timeAdjustmentMs, ended: false, endReason: this.pendingEndReason, endingAfterCurrent: true });
       }
       if (this.config.gameOverEnabled && isGameOver(this.danger)) {
-        this._finish("game-over", now);
+        this._deferEnd("game-over", now);
         return Object.freeze({ ...event, ended: true, endReason: this.endReason });
       }
     }
@@ -400,6 +418,7 @@ export class GameState {
     if (this.problemsSolved >= this.config.maxQuestions) {
       this._finish("question-limit", now);
     }
+    this._finishDeferredEnd(now);
     return result;
   }
 
@@ -489,6 +508,7 @@ export class GameState {
     this.currentProblemElapsedMs = 0;
     this.currentTypoPenalties = 0;
     this.currentLevel2TimePenaltyApplied = false;
+    this._finishDeferredEnd(now);
     return result;
   }
 

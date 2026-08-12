@@ -81,7 +81,8 @@ export function renderResult(result, {
 } = {}) {
   const gameOver = result.endReason === "danger" || result.endReason === "game-over";
   set("result-reason", gameOver ? "SYSTEM OVERRUN" : result.endReason === "quit" ? "SESSION ENDED" : "SESSION COMPLETE", root);
-  set("result-title", gameOver ? "위험도 한계 도달" : "훈련 완료", root);
+  const reachedPracticeBoundary = ["time-limit", "danger", "game-over"].includes(result.endReason);
+  set("result-title", reachedPracticeBoundary ? "현재 문장까지 연습을 마쳤어요" : "훈련 완료", root);
   set("result-score", Number(result.score ?? 0).toLocaleString(), root);
   set("result-accuracy", `${Number(result.accuracy ?? 0).toFixed(1)}%`, root);
   set("result-cpm", `${Number(result.cpm ?? 0).toFixed(1)}타/분`, root);

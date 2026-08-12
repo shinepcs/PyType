@@ -40,7 +40,7 @@ test("only ranked Quick has a time limit", () => {
   const quick = createSessionConfig(GAME_MODES.QUICK);
   assert.equal(quick.durationMs, 240_000);
   assert.equal(quick.maxQuestions, 40);
-  assert.equal(quick.readyMs, 3_000);
+  assert.equal(quick.readyMs, 0);
   assert.equal(quick.ranked, true);
   const daily = createSessionConfig(GAME_MODES.DAILY);
   assert.equal(daily.maxQuestions, 30);
@@ -143,18 +143,15 @@ test("Level 2 submission records either visible answer outcome without auto-adva
   assert.equal(wrong.problemResult.problemScore, 0);
 });
 
-test("ready state becomes playing after exactly three seconds", () => {
+test("game begins playing immediately without a ready countdown", () => {
   const clock = new ManualClock(0);
   const game = new GameState(gameOptions(clock));
-  game.beginReady();
-  clock.advance(2_999);
-  assert.equal(game.tick().phase, "ready");
-  clock.advance(1);
-  assert.equal(game.tick().phase, "playing");
+  assert.equal(game.beginReady(), true);
+  assert.equal(game.phase, "playing");
   assert.equal(game.activeSessionMs, 0);
 });
 
-test("visibility pause freezes the ready countdown without starting game clocks", () => {
+test("visibility pause freezes active game clocks after immediate start", () => {
   const clock = new ManualClock(0);
   const game = new GameState(gameOptions(clock));
   game.beginReady();
@@ -163,16 +160,12 @@ test("visibility pause freezes the ready countdown without starting game clocks"
   clock.advance(10_000);
   game.tick();
   assert.equal(game.phase, "paused");
-  assert.equal(game.activeSessionMs, 0);
+  assert.equal(game.activeSessionMs, 1_000);
   assert.equal(game.danger, 20);
   assert.equal(game.activeTypingMs, 0);
   assert.equal(game.setVisibility(false), true);
-  assert.equal(game.phase, "ready");
-  clock.advance(1_999);
-  assert.equal(game.tick().phase, "ready");
-  clock.advance(1);
-  assert.equal(game.tick().phase, "playing");
-  assert.equal(game.activeSessionMs, 0);
+  assert.equal(game.phase, "playing");
+  assert.equal(game.activeSessionMs, 1_000);
 });
 
 test("clean solve updates score, combo, danger, metrics, and seals the problem", () => {
@@ -283,58 +276,48 @@ test("more than 30 seconds of cumulative visibility/manual pause makes Quick unr
   assert.equal(game.getResult().rankEligible, false);
 });
 
-test("time over wins before a final key at the exact deadline", () => {
+test("time limit lets the current answer finish before ending", () => {
   const clock = new ManualClock(0);
   const game = new GameState(gameOptions(clock, { config: { durationMs: 1_000 } }));
   game.start();
-  game.startProblem(question({ answer: "a", code: "a", acceptedAnswers: ["a"] }));
+  game.startProblem(question());
   clock.advance(1_000);
-  const event = game.handleKey("a");
+  game.tick();
+  assert.equal(game.phase, "playing");
+  assert.equal(game.pendingEndReason, "time-limit");
+  game.handleKey("a");
+  assert.equal(game.phase, "playing");
+  game.handleKey("b");
   assert.equal(game.phase, "ended");
   assert.equal(game.endReason, "time-limit");
-  assert.equal(event.ignored, true);
-  assert.equal(game.problemsSolved, 0);
-  assert.equal(game.getResult().survivalMs, 1_000);
 });
 
-test("final key just before deadline scores, and transition time cannot add danger", () => {
+test("danger limit lets the current answer finish before ending", () => {
   const clock = new ManualClock(0);
-  const game = new GameState(gameOptions(clock, { config: { durationMs: 1_000 } }));
+  const game = new GameState(gameOptions(clock, { config: { durationMs: null } }));
   game.start();
-  game.startProblem(question({ answer: "a", code: "a", acceptedAnswers: ["a"] }));
-  clock.advance(999);
-  game.handleKey("a");
-  const dangerAfterSolve = game.danger;
+  game.startProblem(question());
+  game.danger = 100;
   clock.advance(1);
   game.tick();
-  assert.equal(game.endReason, "time-limit");
-  assert.equal(game.problemsSolved, 1);
-  assert.equal(game.danger, dangerAfterSolve);
-});
-
-test("danger game over ends at the exact crossing inside a coarse tick", () => {
-  const clock = new ManualClock(0);
-  const game = new GameState(gameOptions(clock));
-  game.start();
-  game.startProblem(question());
-  game.danger = 99;
-  clock.advance(5_000);
-  game.tick();
+  assert.equal(game.phase, "playing");
+  assert.equal(game.pendingEndReason, "game-over");
+  game.handleKey("a");
+  game.handleKey("b");
+  assert.equal(game.phase, "ended");
   assert.equal(game.endReason, "game-over");
-  assert.equal(game.getResult().survivalMs, 500);
-  assert.equal(game.danger, 100);
 });
 
-test("session deadline wins an exact tie with danger", () => {
+test("session deadline remains the reason after the current answer completes", () => {
   const clock = new ManualClock(0);
-  const game = new GameState(gameOptions(clock, { config: { durationMs: 1_000 } }));
+  const game = new GameState(gameOptions(clock, { config: { durationMs: 500 } }));
   game.start();
   game.startProblem(question());
-  game.danger = 98;
-  clock.advance(2_000);
+  clock.advance(500);
   game.tick();
+  game.handleKey("a");
+  game.handleKey("b");
   assert.equal(game.endReason, "time-limit");
-  assert.equal(game.danger, 100);
 });
 
 test("late timer callbacks after end cannot mutate score, time, or danger", () => {

@@ -542,7 +542,7 @@ class PythonTypingSurvivalApp {
     $("#skip-button").hidden = mode !== GAME_MODES.PRACTICE;
     $("#ready-mode").textContent = modeLabel;
     $("#ready-count").textContent = mode === GAME_MODES.PRACTICE ? "GO" : "3";
-    $("#ready-overlay").hidden = false;
+    $("#ready-overlay").hidden = true;
     $("#typing-input").disabled = true;
     $("#typing-input").value = "";
     $("#feedback-message").textContent = "";
@@ -565,7 +565,7 @@ class PythonTypingSurvivalApp {
       this.renderActiveHud(snapshot);
 
       if (snapshot.phase === "ready") {
-        $("#ready-overlay").hidden = false;
+        $("#ready-overlay").hidden = true;
         $("#ready-count").textContent = String(Math.max(1, Math.ceil((status.readyRemainingMs ?? 0) / 1_000)));
       } else if (snapshot.phase === "playing") {
         $("#ready-overlay").hidden = true;

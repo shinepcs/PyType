@@ -223,7 +223,7 @@ test("new player completes Level 1/2 Quick Play with typo, pause, persistence an
   await page.clock.fastForward(240_000);
   await expect(page.locator("#screen-result")).toBeVisible();
   await page.clock.runFor(500);
-  await expect(page.locator("#result-title")).toHaveText("훈련 완료");
+  await expect(page.locator("#result-title")).toHaveText("현재 문장까지 연습을 마쳤어요");
   await expect(page.locator("#result-solved")).not.toHaveText("0");
   await expect(page.locator("#result-progress")).toHaveAttribute("data-trend", "first");
   await expect(page.locator("#result-progress-summary")).toContainText("첫 기록");
@@ -280,10 +280,15 @@ test("paste and IME remain scoped to game input and danger reaches game over", a
   await page.keyboard.press("Backspace");
 
   await page.clock.fastForward(60_000);
+  await expect(page.locator("#screen-game")).toBeVisible();
+  const finalCode = await page.locator("#question-code").textContent();
+  await page.locator("#typing-input").focus();
+  await page.keyboard.insertText(finalCode ?? "");
+  await page.clock.runFor(400);
   await expect(page.locator("#screen-result")).toBeVisible();
-  await expect(page.locator("#result-title")).toHaveText("위험도 한계 도달");
-  await expect(page.locator("#result-progress")).toHaveAttribute("data-trend", "declined");
-  await expect(page.locator("#result-progress-summary")).toContainText("직전 기록보다");
+  await expect(page.locator("#result-title")).toHaveText("현재 문장까지 연습을 마쳤어요");
+  await expect(page.locator("#result-progress")).toHaveAttribute("data-trend", "mixed");
+  await expect(page.locator("#result-progress-summary")).toContainText("점수와 정확도");
   await expect(page.locator("#result-comparison-grid .comparison-card").first()).toContainText("이전 500");
 });
 
