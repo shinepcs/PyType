@@ -1414,3 +1414,142 @@ html[data-reduced-motion="true"] .overtake-shockwave,
 html[data-reduced-motion="true"] .overtake-message {
   animation: none;
 }
+
+/* Progress visibility: XP and level must be readable at default zoom. */
+.level-chip {
+  padding: 0.42rem 0.65rem;
+  color: var(--bg-0);
+  background: var(--lime);
+  border: 1px solid var(--lime);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-code);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.experience-card {
+  display: grid;
+  gap: 0.85rem;
+  margin: 1.25rem 0;
+  padding: 1.2rem;
+  background: linear-gradient(135deg, rgba(77, 217, 255, 0.14), rgba(169, 255, 104, 0.08));
+  border: 1px solid rgba(77, 217, 255, 0.48);
+  border-radius: var(--radius-md);
+}
+
+.experience-card-heading,
+.experience-numbers {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.experience-card h2 {
+  margin: 0.18rem 0 0;
+  font-size: 1.35rem;
+}
+
+#progress-level {
+  color: var(--lime);
+  font-family: var(--font-code);
+  font-size: clamp(1.55rem, 4vw, 2.2rem);
+  line-height: 1;
+}
+
+.experience-numbers strong {
+  font-family: var(--font-code);
+  font-size: 1.25rem;
+}
+
+.experience-numbers span {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.experience-track {
+  height: 0.9rem;
+  overflow: hidden;
+  background: var(--bg-0);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+}
+
+.experience-track span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--lime));
+  transition: width 220ms var(--ease-out, ease-out);
+}
+
+
+/* Low-vision readability: preserve compact layout without sub-legible text. */
+small {
+  font-size: max(0.78rem, 14px);
+  line-height: 1.45;
+}
+
+.eyebrow {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+}
+
+.rival-unit[data-relation="behind"] {
+  opacity: 0.86;
+}
+
+.player-unit-label,
+.rival-unit-label {
+  width: 9.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-shadow: 0 1px 8px var(--bg-0);
+}
+
+.player-unit-label strong,
+.rival-unit-label strong {
+  font-size: clamp(1.9rem, 5.5vw, 2.45rem);
+  font-weight: 900;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 16px currentColor;
+}
+
+.player-unit-label small,
+.rival-unit-label small {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 8px var(--bg-0);
+}
+
+@media (max-width: 540px) {
+  .experience-card-heading,
+  .experience-numbers {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .player-unit-label,
+  .rival-unit-label {
+    width: 8rem;
+  }
+}
+
+
+/* Keep player names within the race lane; enlarge score text independently. */
+.player-unit-label,
+.rival-unit-label {
+  width: 8rem;
+}
+
+.player-unit-label strong,
+.rival-unit-label strong {
+  font-size: 1.59rem;
+}

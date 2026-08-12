@@ -3,7 +3,7 @@ import { SPEED_HISTORY_LIMIT } from "../core/speed-history.js";
 export const STORAGE_KEY = "pythonTypingSurvival:v1";
 
 export const CORRUPT_BACKUP_PREFIX = STORAGE_KEY + ":corrupt:";
-export const STORAGE_SCHEMA_VERSION = 4;
+export const STORAGE_SCHEMA_VERSION = 5;
 
 export const STORAGE_LIMITS = Object.freeze({
   history: 100,
@@ -36,7 +36,7 @@ const ROOT_KEYS = Object.freeze([
 const PROFILE_KEYS = Object.freeze(["nickname", "createdAt"]);
 const SETTINGS_KEYS = Object.freeze(["sound", "reducedMotion", "fontScale", "practiceLayout", "blockTypos"]);
 const PRACTICE_LAYOUTS = Object.freeze(["horizontal", "vertical"]);
-const PROGRESS_KEYS = Object.freeze(["skills", "level2Prerequisites"]);
+const PROGRESS_KEYS = Object.freeze(["skills", "level2Prerequisites", "experience"]);
 const PERSONAL_BEST_KEYS = Object.freeze(["quick", "daily"]);
 const SKILL_KEYS = Object.freeze([
   "attempts",
@@ -130,6 +130,7 @@ export function createDefaultStorageData(now = () => new Date()) {
     progress: {
       skills: {},
       level2Prerequisites: {},
+      experience: 0,
     },
     history: [],
     speedHistory: [],
@@ -381,11 +382,24 @@ function migrateV3(value) {
   };
 }
 
+function migrateV4(value) {
+  const progress = isPlainObject(value.progress) ? value.progress : {};
+  return {
+    ...value,
+    schemaVersion: 5,
+    progress: {
+      ...progress,
+      experience: progress.experience ?? 0,
+    },
+  };
+}
+
 export const STORAGE_MIGRATIONS = Object.freeze({
   0: migrateV0,
   1: migrateV1,
   2: migrateV2,
   3: migrateV3,
+  4: migrateV4,
 });
 
 export function migrateStorageData(input, now = () => new Date()) {
@@ -447,9 +461,10 @@ export function validateStorageData(input) {
 
   if (!isPlainObject(input.progress) || !hasOnlyKeys(input.progress, PROGRESS_KEYS)
       || !isPlainObject(input.progress?.skills)
+      || !isIntegerInRange(input.progress?.experience ?? 0, 0, 100000000)
       || (input.progress.level2Prerequisites !== undefined
         && !isPlainObject(input.progress.level2Prerequisites))) {
-    errors.push("progress.skills must be an object without unknown progress fields");
+    errors.push("progress must contain valid skills, experience, and prerequisite data");
   }
   const skills = {};
   for (const [skillId, skill] of Object.entries(input.progress?.skills ?? {})) {
@@ -528,7 +543,11 @@ export function validateStorageData(input) {
         practiceLayout: input.settings.practiceLayout ?? "vertical",
         blockTypos: input.settings.blockTypos,
       },
-      progress: { skills, level2Prerequisites },
+      progress: {
+        skills,
+        level2Prerequisites,
+        experience: input.progress.experience ?? 0,
+      },
       history,
       speedHistory,
       personalBest,

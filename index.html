@@ -36,6 +36,7 @@
             <span id="network-label">RANKING OFFLINE</span>
           </span>
           <span class="player-chip">PLAYER <strong id="header-player">—</strong></span>
+          <span class="level-chip" aria-label="현재 레벨" id="header-level">LV.1</span>
         </div>
       </header>
 
@@ -257,6 +258,8 @@
             <div><small>BEST COMBO</small><strong id="result-combo">0</strong></div>
             <div><small>SURVIVAL</small><strong id="result-time">00:00</strong></div>
             <div><small>CORRECT KEYS</small><strong id="result-keys">0</strong></div>
+            <div><small>LEVEL</small><strong id="result-level">LV.1</strong></div>
+            <div><small>SESSION XP</small><strong id="result-xp-earned">+0 XP</strong></div>
           </div>
           <section class="result-progress" id="result-progress" aria-labelledby="result-progress-title">
             <header>
@@ -323,6 +326,14 @@
             <button class="text-button" data-nav-home type="button">← HOME</button>
           </div>
           <div class="progress-summary" id="progress-summary"></div>
+          <section class="experience-card" aria-labelledby="progress-experience-title">
+            <div class="experience-card-heading">
+              <div><p class="eyebrow">LEARNING EXPERIENCE</p><h2 id="progress-experience-title">내 연습 레벨</h2></div>
+              <strong id="progress-level">LV.1</strong>
+            </div>
+            <div class="experience-numbers"><strong id="progress-experience-total">0 XP</strong><span id="progress-experience-next">다음 레벨까지 100 XP</span></div>
+            <div class="experience-track" role="progressbar" aria-label="다음 레벨까지의 경험치" aria-valuemin="0" aria-valuemax="100"><span id="progress-experience-fill"></span></div>
+          </section>
           <section class="speed-trend" aria-labelledby="speed-trend-title">
             <header>
               <div><p class="eyebrow">LOCAL SPEED HISTORY</p><h2 id="speed-trend-title">분당 타수 추세</h2></div>

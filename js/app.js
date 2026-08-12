@@ -10,6 +10,7 @@ import {
   createSessionVariant,
 } from "./core/session-statistics.js";
 import { createLevel2PrerequisiteQuestion, level2PrerequisiteKey, recordLevel2Prerequisite } from "./core/level2-progression.js";
+import { calculateSessionExperience, getExperienceProgress } from "./core/experience.js";
 import {
   createDailySeed,
   GAME_MODES,
@@ -313,6 +314,7 @@ class PythonTypingSurvivalApp {
     const data = this.storageData ?? this.storage.read();
     const nickname = data.profile.nickname ?? "—";
     $("#header-player").textContent = nickname;
+    $("#header-level").textContent = `LV.${getExperienceProgress(data.progress.experience).level}`;
     $("#settings-nickname").value = data.profile.nickname ?? "";
     $("#settings-motion").checked = Boolean(data.settings.reducedMotion);
     $("#settings-font-scale").value = String(data.settings.fontScale);
@@ -909,6 +911,9 @@ class PythonTypingSurvivalApp {
 
     const result = session.game.getResult(performance.now());
     const before = this.storage.read();
+    const experienceEarned = calculateSessionExperience(result);
+    const experienceAfter = (before.progress.experience ?? 0) + experienceEarned;
+    const experienceProgress = getExperienceProgress(experienceAfter);
     const updatedSkills = { ...before.progress.skills };
     for (const problemResult of result.problemResults) {
       updatedSkills[problemResult.skill] = updateSkillMastery(
@@ -923,6 +928,8 @@ class PythonTypingSurvivalApp {
       && isBetterResult(result, previousBest);
     const record = {
       ...result,
+      experienceEarned,
+      experienceLevel: experienceProgress.level,
       playerName: before.profile.nickname,
       sessionVariant: createSessionVariant(result.gameMode, session.options),
       averageProblemMs: calculateAverageProblemMs(result.problemResults),
@@ -933,6 +940,7 @@ class PythonTypingSurvivalApp {
 
     const saved = this.storage.update((state) => {
       state.progress.skills = updatedSkills;
+      state.progress.experience = experienceAfter;
       state.progress.level2Prerequisites = { ...session.level2Prerequisites };
       state.history.push(record);
       if (record.endedNormally) {
@@ -954,6 +962,8 @@ class PythonTypingSurvivalApp {
       return;
     }
     renderResult(record, { formatTime: formatElapsed, statistics: sessionStatistics });
+    $("#result-level").textContent = `LV.${experienceProgress.level}`;
+    $("#result-xp-earned").textContent = `+${experienceEarned} XP`;
     renderRankingSubmission({ kind: result.gameMode === GAME_MODES.QUICK ? "submitting" : "local" });
     this.router.show("result");
     if (isRankingPayloadEligible(record)) {
@@ -1191,6 +1201,11 @@ class PythonTypingSurvivalApp {
       ]),
     );
     renderProgress(allSkills, data.history, data.speedHistory);
+    const experience = getExperienceProgress(data.progress.experience);
+    $("#progress-level").textContent = `LV.${experience.level}`;
+    $("#progress-experience-total").textContent = `${experience.totalXp.toLocaleString()} XP`;
+    $("#progress-experience-next").textContent = `다음 레벨까지 ${experience.nextLevelXp - experience.currentLevelXp} XP`;
+    $("#progress-experience-fill").style.width = `${experience.progressPercent}%`;
     this.router.show("progress");
   }
 
